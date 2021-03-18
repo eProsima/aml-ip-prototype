@@ -1,0 +1,12 @@
+
+struct AML_IP_Relation
+{
+	boolean typeOfRelation;
+	sequence<unsigned long> l;
+	sequence<unsigned long> h;
+}
+
+struct AML_IP_DLOutput
+{
+	sequence<AML_IP_Relation> relations;
+};
