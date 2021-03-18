@@ -24,20 +24,28 @@
 #include "../types/Atomization/Atomization.h"
 
 #include <fastdds/dds/domain/DomainParticipant.hpp>
-#include <fastdds/dds/publisher/Publisher.hpp>
 #include <fastdds/dds/topic/Topic.hpp>
+#include <fastdds/dds/publisher/Publisher.hpp>
 #include <fastdds/dds/publisher/DataWriter.hpp>
+#include <fastdds/dds/publisher/DataWriterListener.hpp>
+#include <fastdds/dds/subscriber/Subscriber.hpp>
+#include <fastdds/dds/subscriber/DataReader.hpp>
+#include <fastdds/dds/subscriber/DataReaderListener.hpp>
 
-class EngineListener;
+#include <atomic>
+
+class EngineWriterListener;
+class DLReaderListener;
+class AtomizationReaderListener;
 
 class EngineParticipant
 {
 
 public:
 
-    HelloWorldPublisher();
+    EngineParticipant();
 
-    virtual ~HelloWorldPublisher();
+    virtual ~EngineParticipant();
 
     //!Initialize
     bool init(int domain);
@@ -53,11 +61,10 @@ protected:
     static AML_IP_Atomization generate_random_data_();
 
     void runThread(
-            uint32_t number,
+            int number,
             long sleep_ms);
 
 private:
-    AML_IP_EngineOutput data_;
 
     eprosima::fastdds::dds::DomainParticipant* participant_;
 
@@ -99,7 +106,7 @@ public:
 
 };
 
-class DLReaderListener : public eprosima::fastdds::dds::DataWriterListener
+class DLReaderListener : public eprosima::fastdds::dds::DataReaderListener
 {
 public:
 
@@ -123,7 +130,7 @@ private:
     int samples_;
 };
 
-class AtomizationReaderListener : public eprosima::fastdds::dds::DataWriterListener
+class AtomizationReaderListener : public eprosima::fastdds::dds::DataReaderListener
 {
 public:
 

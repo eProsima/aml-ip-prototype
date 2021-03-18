@@ -18,33 +18,39 @@
  */
 
 #include "DLParticipant.hpp"
+#include "../types/DLOutput/DLOutputPubSubTypes.h"
+
+#include <fastdds/dds/domain/DomainParticipantFactory.hpp>
+#include <fastdds/dds/domain/qos/DomainParticipantQos.hpp>
+#include <fastdds/dds/publisher/qos/PublisherQos.hpp>
+#include <fastdds/dds/topic/qos/TopicQos.hpp>
+#include <fastdds/dds/publisher/qos/DataWriterQos.hpp>
+
+#include <atomic>
 
 using namespace eprosima::fastdds::dds;
 using namespace eprosima::fastdds::rtps;
 
-HelloWorldPublisher::HelloWorldPublisher()
+DLParticipant::DLParticipant()
     : participant_(nullptr)
     , publisher_(nullptr)
     , topic_(nullptr)
     , writer_(nullptr)
-    , type_(new AML_IP_DLOutput()
-    , stop_(false))
+    , listener_(nullptr)
+    , type_(new AML_IP_DLOutputPubSubType())
+    , stop_(false)
 {
 }
 
-bool HelloWorldPublisher::init(
-        int domain,
-        float period)
+bool DLParticipant::init(
+        int domain)
 {
     //CREATE THE PARTICIPANT
     DomainParticipantQos pqos;
     pqos.wire_protocol().builtin.discovery_config.leaseDuration = eprosima::fastrtps::c_TimeInfinite;
     pqos.wire_protocol().builtin.discovery_config.leaseDuration_announcementperiod =
-            eprosima::fastrtps::Duration_t(period, 0);
+            eprosima::fastrtps::Duration_t(2, 0);
     pqos.name("DL Participant");
-
-    descriptor->sendBufferSize = 0;
-    descriptor->receiveBufferSize = 0;
 
     participant_ = DomainParticipantFactory::get_instance()->create_participant(domain, pqos);
 
@@ -86,11 +92,11 @@ bool HelloWorldPublisher::init(
     return true;
 }
 
-HelloWorldPublisher::~HelloWorldPublisher()
+DLParticipant::~DLParticipant()
 {
     if (listener_ != nullptr)
     {
-        writer_.set_listener(nullptr);
+        writer_->set_listener(nullptr);
         delete listener_;
     }
     if (writer_ != nullptr)
@@ -106,6 +112,58 @@ HelloWorldPublisher::~HelloWorldPublisher()
         participant_->delete_topic(topic_);
     }
     DomainParticipantFactory::get_instance()->delete_participant(participant_);
+}
+
+void DLParticipant::runThread(
+        int samples,
+        long sleep_ms)
+{
+    int index = 0;
+    while (!stop_ && (index < samples || samples == 0))
+    {
+        if (!publish())
+        {
+            std::cout << "ERROR sending message: " << ++index << std::endl;
+        }
+        else
+        {
+            std::cout << "DL Participant sent message: " << ++index << std::endl;
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(sleep_ms));
+    }
+}
+
+void DLParticipant::run(
+        int samples,
+        float period)
+{
+    std::thread thread(&DLParticipant::runThread, this, samples, static_cast<long>(period * 1000));
+
+    if (samples == 0)
+    {
+        std::cout << "DL Participant publishing " << samples << " samples." << std::endl;
+        std::cin.ignore();
+        stop_ = true;
+    }
+    else
+    {
+        std::cout << "DL Participant publishing. Please press enter to stop_ it at any time." << std::endl;
+    }
+
+    thread.join();
+}
+
+bool DLParticipant::publish()
+{
+    AML_IP_DLOutput data = generate_random_data_();
+    writer_->write((void*)&data);
+    return true;
+}
+
+AML_IP_DLOutput DLParticipant::generate_random_data_()
+{
+    return AML_IP_DLOutput();
 }
 
 void DLListener::on_publication_matched(
@@ -125,45 +183,4 @@ void DLListener::on_publication_matched(
         std::cout << info.current_count_change
                   << " is not a valid value for PublicationMatchedStatus current count change" << std::endl;
     }
-}
-
-void HelloWorldPublisher::runThread(
-        int samples,
-        long sleep_ms)
-{
-    int index = 0;
-    while (!stop_ && (index < samples || samples == 0))
-    {
-        if (!publish(false))
-        {
-            std::cout << "ERROR sending message: " << index << std::endl;
-        }
-        else
-        {
-            std::cout << "DL Participant sent message: " << index << std::endl;
-        }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(sleep_ms));
-    }
-}
-
-void HelloWorldPublisher::run(
-        int samples,
-        float period)
-{
-    std::thread thread(&HelloWorldPublisher::runThread, this, samples, static_cast<long>(period * 1000));
-
-    std::cout << "DL Participant publishing. Please press enter to stop_ it at any time." << std::endl;
-    std::cin.ignore();
-    stop_ = true;
-
-    thread.join();
-}
-
-bool HelloWorldPublisher::publish(
-        bool waitForListener)
-{
-    AML_IP_DLOutput data = generate_random_data_()
-    writer_->write((void*)&data);
-    return true;
 }

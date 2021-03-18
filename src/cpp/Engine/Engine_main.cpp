@@ -21,7 +21,7 @@
 
 #include <string>
 
-#include <optionparser.h>
+#include "../utils/optionparser.h"
 
 /*
  * Struct to parse the executable arguments
@@ -53,7 +53,7 @@ struct Arg: public option::Arg
     static option::ArgStatus Numeric(const option::Option& option, bool msg)
     {
         char* endptr = 0;
-        if (option.arg != 0 && strtol(option.arg, &endptr, 10))
+        if (option.arg != 0 && std::strtol(option.arg, &endptr, 10))
         {
         }
         if (endptr != option.arg && *endptr == 0)
@@ -68,22 +68,23 @@ struct Arg: public option::Arg
         return option::ARG_ILLEGAL;
     }
 
-        static option::ArgStatus __HAVE_FLOAT128X(const option::Option& option, bool msg)
+    static option::ArgStatus Float(const option::Option& option, bool msg)
     {
-        char* endptr = 0;
-        if (option.arg != 0 && stof(option.arg, &endptr, 10))
-        {
-        }
-        if (endptr != option.arg && *endptr == 0)
-        {
-            return option::ARG_OK;
-        }
+            // char* endptr = 0;
+            // if (option.arg != 0 && std::stof(option.arg, &endptr, 10))
+            // {
+            // }
+            // if (endptr != option.arg && *endptr == 0)
+            // {
+            //     return option::ARG_OK;
+            // }
 
-        if (msg)
-        {
-            print_error("Option '", option, "' requires a float argument\n");
-        }
-        return option::ARG_ILLEGAL;
+            // if (msg)
+            // {
+            //     print_error("Option '", option, "' requires a float argument\n");
+            // }
+            // return option::ARG_ILLEGAL;
+        return option::ARG_OK;
     }
 
     static option::ArgStatus String(const option::Option& option, bool msg)
@@ -137,7 +138,7 @@ int main(int argc, char** argv)
     size_t sz = 0;
     if (_dupenv_s(&buf, &sz, "COLUMNS") == 0 && buf != nullptr)
     {
-        columns = strtol(buf, nullptr, 10);
+        columns = std::strtol(buf, nullptr, 10);
         free(buf);
     }
     else
@@ -153,7 +154,8 @@ int main(int argc, char** argv)
     int samples = 10;
     int domain = 11;
 
-    if (argc > 1)
+    // No required arguments
+    if (argc > 0)
     {
 
         argc -= (argc > 0); // reduce arg count of program name if present
@@ -186,15 +188,15 @@ int main(int argc, char** argv)
                     break;
 
                 case PERIOD:
-                    period = stof(opt.arg, nullptr, 10);
+                    period = std::stof(opt.arg);
                     break;
 
                 case SAMPLES:
-                    samples = strtol(opt.arg, nullptr, 10);
+                    samples = std::strtol(opt.arg, nullptr, 10);
                     break;
 
                 case DOMAIN:
-                    domain = strtol(opt.arg, nullptr, 10);
+                    domain = std::strtol(opt.arg, nullptr, 10);
                     break;
 
                 case UNKNOWN_OPT:

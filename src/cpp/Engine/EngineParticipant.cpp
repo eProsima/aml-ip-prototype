@@ -17,35 +17,50 @@
  *
  */
 
-#include "DLParticipant.hpp"
+#include "EngineParticipant.hpp"
+#include "../types/DLOutput/DLOutputPubSubTypes.h"
+#include "../types/Atomization/AtomizationPubSubTypes.h"
+
+#include <fastdds/dds/domain/DomainParticipantFactory.hpp>
+#include <fastdds/dds/domain/qos/DomainParticipantQos.hpp>
+#include <fastdds/dds/publisher/qos/PublisherQos.hpp>
+#include <fastdds/dds/subscriber/qos/SubscriberQos.hpp>
+#include <fastdds/dds/topic/qos/TopicQos.hpp>
+#include <fastdds/dds/publisher/qos/DataWriterQos.hpp>
+#include <fastdds/dds/subscriber/qos/DataReaderQos.hpp>
+
+#include <atomic>
 
 using namespace eprosima::fastdds::dds;
 using namespace eprosima::fastdds::rtps;
 
-HelloWorldPublisher::HelloWorldPublisher()
+EngineParticipant::EngineParticipant()
     : participant_(nullptr)
     , publisher_(nullptr)
-    , topic_(nullptr)
+    , subscriber_(nullptr)
+    , dl_topic_(nullptr)
+    , atomization_topic_(nullptr)
     , writer_(nullptr)
-    , dl_type_(new AML_IP_DLOutput()
-    , atomization_type_(new AML_IP_Atomization()
-    , stop_(false))
+    , dl_reader_(nullptr)
+    , atomization_reader_(nullptr)
+    , writer_listener_(nullptr)
+    , dl_reader_listener_(nullptr)
+    , atomization_reader_listener_(nullptr)
+    , dl_type_(new AML_IP_DLOutputPubSubType())
+    , atomization_type_(new AML_IP_AtomizationPubSubType())
+    , stop_(false)
 {
 }
 
-bool HelloWorldPublisher::init(
-        int domain,
-        float period)
+bool EngineParticipant::init(
+        int domain)
 {
     //CREATE THE PARTICIPANT
     DomainParticipantQos pqos;
     pqos.wire_protocol().builtin.discovery_config.leaseDuration = eprosima::fastrtps::c_TimeInfinite;
     pqos.wire_protocol().builtin.discovery_config.leaseDuration_announcementperiod =
-            eprosima::fastrtps::Duration_t(period, 0);
+            eprosima::fastrtps::Duration_t(2, 0);
     pqos.name("Engine Participant");
-
-    descriptor->sendBufferSize = 0;
-    descriptor->receiveBufferSize = 0;
 
     participant_ = DomainParticipantFactory::get_instance()->create_participant(domain, pqos);
 
@@ -69,7 +84,7 @@ bool HelloWorldPublisher::init(
     //CREATE THE SUBSCRIBER
     subscriber_ = participant_->create_subscriber(SUBSCRIBER_QOS_DEFAULT);
 
-    if (subscriber == nullptr)
+    if (subscriber_ == nullptr)
     {
         return false;
     }
@@ -105,7 +120,10 @@ bool HelloWorldPublisher::init(
     dl_reader_listener_ = new DLReaderListener();
 
     //CREATE THE DATAREADER DL
-    dl_reader_ = publisher_->create_datareader(dl_topic_, DATAREADER_QOS_DEFAULT, dl_reader_listener_);
+    dl_reader_ = subscriber_->create_datareader(
+        dl_topic_,
+        DATAREADER_QOS_DEFAULT,
+        dl_reader_listener_);
 
     if (dl_reader_ == nullptr)
     {
@@ -115,7 +133,7 @@ bool HelloWorldPublisher::init(
     //CREATE THE READER LISTENER
     atomization_reader_listener_ = new AtomizationReaderListener();
 
-    atomization_reader_ = publisher_->create_datareader(
+    atomization_reader_ = subscriber_->create_datareader(
         atomization_topic_,
         DATAREADER_QOS_DEFAULT,
         atomization_reader_listener_);
@@ -128,22 +146,22 @@ bool HelloWorldPublisher::init(
     return true;
 }
 
-HelloWorldPublisher::~HelloWorldPublisher()
+EngineParticipant::~EngineParticipant()
 {
     // Delete listeners
     if (writer_listener_ != nullptr)
     {
-        writer_.set_listener(nullptr);
+        writer_->set_listener(nullptr);
         delete writer_listener_;
     }
     if (dl_reader_listener_ != nullptr)
     {
-        dl_reader_.set_listener(nullptr);
+        dl_reader_->set_listener(nullptr);
         delete dl_reader_listener_;
     }
     if (atomization_reader_listener_ != nullptr)
     {
-        atomization_reader_.set_listener(nullptr);
+        atomization_reader_->set_listener(nullptr);
         delete atomization_reader_listener_;
     }
 
@@ -154,11 +172,11 @@ HelloWorldPublisher::~HelloWorldPublisher()
     }
     if (dl_reader_ != nullptr)
     {
-        publisher_->delete_datareader(dl_reader_);
+        subscriber_->delete_datareader(dl_reader_);
     }
     if (atomization_reader_ != nullptr)
     {
-        publisher_->delete_datareader(atomization_reader_);
+        subscriber_->delete_datareader(atomization_reader_);
     }
 
     // Delete entities
@@ -185,47 +203,57 @@ HelloWorldPublisher::~HelloWorldPublisher()
     DomainParticipantFactory::get_instance()->delete_participant(participant_);
 }
 
-void HelloWorldPublisher::runThread(
+void EngineParticipant::runThread(
         int samples,
         long sleep_ms)
 {
     int index = 0;
     while (!stop_ && (index < samples || samples == 0))
     {
-        if (!publish(false))
+        if (!publish())
         {
-            std::cout << "ERROR sending message: " << index << std::endl;
+            std::cout << "ERROR sending message: " << ++index << std::endl;
         }
         else
         {
-            std::cout << "Engine finish process and sends atomization: " << index << std::endl;
+            std::cout << "Engine finish process and sends atomization: " << ++index << std::endl;
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(sleep_ms));
     }
 }
 
-void HelloWorldPublisher::run(
+void EngineParticipant::run(
         int samples,
         float period)
 {
-    std::thread thread(&HelloWorldPublisher::runThread, this, samples, static_cast<long>(period * 1000));
+    std::thread thread(&EngineParticipant::runThread, this, samples, static_cast<long>(period * 1000));
 
-    std::cout << "Engine Participant running. Please press enter to stop_ it at any time." << std::endl;
-    std::cin.ignore();
-    stop_ = true;
+    if (samples == 0)
+    {
+        std::cout << "Engine Participant publishing " << samples << " samples." << std::endl;
+        std::cin.ignore();
+        stop_ = true;
+    }
+    else
+    {
+        std::cout << "Engine Participant publishing. Please press enter to stop_ it at any time." << std::endl;
+    }
 
     thread.join();
 }
 
-bool HelloWorldPublisher::publish(
-        bool waitForListener)
+bool EngineParticipant::publish()
 {
-    AML_IP_Atomization data = generate_random_data_()
+    AML_IP_Atomization data = generate_random_data_();
     writer_->write((void*)&data);
     return true;
 }
 
+AML_IP_Atomization EngineParticipant::generate_random_data_()
+{
+    return AML_IP_Atomization();
+}
 
 void EngineWriterListener::on_publication_matched(
         eprosima::fastdds::dds::DataWriter*,
@@ -252,11 +280,11 @@ void DLReaderListener::on_subscription_matched(
 {
     if (info.current_count_change == 1)
     {
-        std::cout << "Engine Participant matched with a new Dl: " << info.last_subscription_handle << std::endl;
+        std::cout << "Engine Participant matched with a new Dl: " << info.last_publication_handle << std::endl;
     }
     else if (info.current_count_change == -1)
     {
-        std::cout << "Engine Participant unmatched with Dl: " << info.last_subscription_handle << std::endl;
+        std::cout << "Engine Participant unmatched with Dl: " << info.last_publication_handle << std::endl;
     }
     else
     {
@@ -287,11 +315,11 @@ void AtomizationReaderListener::on_subscription_matched(
 {
     if (info.current_count_change == 1)
     {
-        std::cout << "Engine Participant matched with other Engine: " << info.last_subscription_handle << std::endl;
+        std::cout << "Engine Participant matched with other Engine: " << info.last_publication_handle << std::endl;
     }
     else if (info.current_count_change == -1)
     {
-        std::cout << "Engine Participant unmatched with Engine: " << info.last_subscription_handle << std::endl;
+        std::cout << "Engine Participant unmatched with Engine: " << info.last_publication_handle << std::endl;
     }
     else
     {

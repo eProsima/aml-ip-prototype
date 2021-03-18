@@ -26,6 +26,9 @@
 #include <fastdds/dds/publisher/Publisher.hpp>
 #include <fastdds/dds/topic/Topic.hpp>
 #include <fastdds/dds/publisher/DataWriter.hpp>
+#include <fastdds/dds/publisher/DataWriterListener.hpp>
+
+#include <atomic>
 
 class DLListener;
 
@@ -34,9 +37,9 @@ class DLParticipant
 
 public:
 
-    HelloWorldPublisher();
+    DLParticipant();
 
-    virtual ~HelloWorldPublisher();
+    virtual ~DLParticipant();
 
     //!Initialize
     bool init(int domain);
@@ -52,11 +55,10 @@ protected:
     static AML_IP_DLOutput generate_random_data_();
 
     void runThread(
-            uint32_t number,
+            int number,
             long sleep_ms);
 
 private:
-    AML_IP_DLOutput data_;
 
     eprosima::fastdds::dds::DomainParticipant* participant_;
 
