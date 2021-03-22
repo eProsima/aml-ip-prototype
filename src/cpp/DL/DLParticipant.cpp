@@ -27,6 +27,7 @@
 #include <fastdds/dds/topic/qos/TopicQos.hpp>
 #include <fastdds/dds/publisher/qos/DataWriterQos.hpp>
 #include <fastrtps/xmlparser/XMLProfileManager.h>
+#include <fastdds/rtps/transport/TCPv4TransportDescriptor.h>
 
 #include <stdlib.h>
 #include <atomic>
@@ -54,13 +55,30 @@ bool DLParticipant::init(
 
     //CREATE THE PARTICIPANT
     DomainParticipantQos pqos = DomainParticipantFactory::get_instance()->get_default_participant_qos();
-    if (false == pqos.transport().use_builtin_transports)
-        std::cout << "TOMA MORENOOOO" << std::endl; pqos = PARTICIPANT_QOS_DEFAULT;
 
     pqos.wire_protocol().builtin.discovery_config.leaseDuration = eprosima::fastrtps::c_TimeInfinite;
     pqos.wire_protocol().builtin.discovery_config.leaseDuration_announcementperiod =
             eprosima::fastrtps::Duration_t(2, 0);
     pqos.name("DL Participant");
+
+    // TCP Manual configuration
+    // pqos.transport().use_builtin_transports = false;
+
+    // std::shared_ptr<TCPv4TransportDescriptor> descriptor = std::make_shared<TCPv4TransportDescriptor>();
+
+    // descriptor->sendBufferSize = 0;
+    // descriptor->receiveBufferSize = 0;
+
+    // int port = 5100;
+
+    // Locator initial_peer_locator;
+    // initial_peer_locator.kind = LOCATOR_KIND_TCPv4;
+
+    // IPLocator::setIPv4(initial_peer_locator, "127.0.0.1");
+    // initial_peer_locator.port = port;
+    // pqos.wire_protocol().builtin.initialPeersList.push_back(initial_peer_locator); // Publisher's meta channel
+
+    // pqos.transport().user_transports.push_back(descriptor);
 
     participant_ = DomainParticipantFactory::get_instance()->create_participant(domain, pqos);
 
@@ -69,7 +87,7 @@ bool DLParticipant::init(
         return false;
     }
 
-    std::cout << "DL Participant created with guid: " << participant_->guid() << std::endl;
+    std::cout << "DL Participant created with guid: " << participant_->guid().guidPrefix << std::endl;
 
     //REGISTER THE TYPE
     type_.register_type(participant_);
@@ -148,12 +166,13 @@ void DLParticipant::runThread(
 
         if (!publish(data))
         {
-            std::cout << "ERROR sending message: " << ++index << std::endl;
+            std::cout << "<< DL Participant " << participant_->guid().guidPrefix
+                << " ERROR sending message: " << ++index << std::endl;
         }
         else
         {
-            std::cout << "DL Participant sent DLOutput number: " << ++index
-                << " message: " << data << std::endl << std::endl;
+            std::cout << "<< DL Participant " << participant_->guid().guidPrefix
+                << " sent DLOutput number: " << ++index << " message: " << data << std::endl << std::endl;
         }
     }
 }
@@ -167,13 +186,15 @@ void DLParticipant::run(
 
     if (samples == 0)
     {
-        std::cout << "DL Participant publishing. Please press enter to stop it at any time." << std::endl;
+        std::cout << "DL Participant " << participant_->guid().guidPrefix
+            << " publishing. Please press enter to stop it at any time." << std::endl;
         std::cin.ignore();
         stop_.store(true);
     }
     else
     {
-        std::cout << "DL Participant publishing " << samples << " samples." << std::endl;
+        std::cout << "DL Participant " << participant_->guid().guidPrefix
+            << " publishing " << samples << " samples." << std::endl;
     }
 
     thread.join();
@@ -185,16 +206,18 @@ bool DLParticipant::publish(AML_IP_DLOutput data)
 }
 
 void DLListener::on_publication_matched(
-        eprosima::fastdds::dds::DataWriter*,
+        eprosima::fastdds::dds::DataWriter* writer,
         const eprosima::fastdds::dds::PublicationMatchedStatus& info)
 {
     if (info.current_count_change == 1)
     {
-        std::cout << "DL Participant matched with " << info.last_subscription_handle << std::endl;
+        std::cout << "DL Participant " << writer->guid().guidPrefix << " matched with "
+            << info.last_subscription_handle << std::endl;
     }
     else if (info.current_count_change == -1)
     {
-        std::cout << "DL Participant unmatched with " << info.last_subscription_handle << std::endl;
+        std::cout << "DL Participant " << writer->guid().guidPrefix << " unmatched with "
+            << info.last_subscription_handle << std::endl;
     }
     else
     {

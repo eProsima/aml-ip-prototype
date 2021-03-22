@@ -31,6 +31,8 @@
 #include <fastdds/dds/subscriber/qos/DataReaderQos.hpp>
 #include <fastrtps/rtps/common/InstanceHandle.h>
 #include <fastrtps/xmlparser/XMLProfileManager.h>
+#include <fastdds/rtps/transport/TCPv4TransportDescriptor.h>
+#include <fastrtps/utils/IPLocator.h>
 
 #include <atomic>
 
@@ -64,13 +66,30 @@ bool EngineParticipant::init(
 
     //CREATE THE PARTICIPANT
     DomainParticipantQos pqos = DomainParticipantFactory::get_instance()->get_default_participant_qos();
-    if (false == pqos.transport().use_builtin_transports)
-        std::cout << "TOMA MORENOOOO" << std::endl;
 
     pqos.wire_protocol().builtin.discovery_config.leaseDuration = eprosima::fastrtps::c_TimeInfinite;
     pqos.wire_protocol().builtin.discovery_config.leaseDuration_announcementperiod =
             eprosima::fastrtps::Duration_t(2, 0);
     pqos.name("Engine Participant");
+
+    // TCP Manual configuration
+    // pqos.transport().use_builtin_transports = false;
+    // std::shared_ptr<TCPv4TransportDescriptor> descriptor = std::make_shared<TCPv4TransportDescriptor>();
+
+    // descriptor->sendBufferSize = 0;
+    // descriptor->receiveBufferSize = 0;
+
+    // int port = 5100;
+
+    // Locator initial_peer_locator;
+    // initial_peer_locator.kind = LOCATOR_KIND_TCPv4;
+
+    // eprosima::fastrtps::rtps::IPLocator::setIPv4(initial_peer_locator, "127.0.0.1");
+    // initial_peer_locator.port = port;
+    // pqos.wire_protocol().builtin.initialPeersList.push_back(initial_peer_locator); // Publisher's meta channel
+
+    // descriptor->add_listener_port(port);
+    // pqos.transport().user_transports.push_back(descriptor);
 
     participant_ = DomainParticipantFactory::get_instance()->create_participant(domain, pqos);
 
@@ -79,7 +98,7 @@ bool EngineParticipant::init(
         return false;
     }
 
-    std::cout << "Engine Participant created with guid: " << participant_->guid() << std::endl;
+    std::cout << "Engine Participant created with guid: " << participant_->guid().guidPrefix << std::endl;
 
     //REGISTER THE TYPES
     dl_type_.register_type(participant_);
@@ -237,11 +256,13 @@ void EngineParticipant::runThread(
 
         if (!publish(data))
         {
-            std::cout << "ERROR sending message: " << ++index << std::endl;
+            std::cout << "<< Engine Participant " << participant_->guid().guidPrefix
+                << " ERROR sending message: " << ++index << std::endl;
         }
         else
         {
-            std::cout << "Engine sent atomization number: " << ++index
+            std::cout << "<< Engine Participant " << participant_->guid().guidPrefix
+                << " sent atomization number: " << ++index
                 << " message: " << data << std::endl << std::endl;
         }
     }
@@ -256,13 +277,15 @@ void EngineParticipant::run(
 
     if (samples == 0)
     {
-        std::cout << "Engine Participant publishing. Please press enter to stop it at any time." << std::endl;
+        std::cout << "Engine Participant " << participant_->guid().guidPrefix
+                << " publishing. Please press enter to stop it at any time." << std::endl;
         std::cin.ignore();
         stop_.store(true);
     }
     else
     {
-        std::cout << "Engine Participant publishing " << samples << " samples." << std::endl;
+        std::cout << "Engine Participant " << participant_->guid().guidPrefix
+                << " publishing " << samples << " samples." << std::endl;
     }
 
     thread.join();
@@ -283,7 +306,8 @@ void EngineWriterListener::on_publication_matched(
         if (eprosima::fastrtps::rtps::iHandle2GUID(info.last_subscription_handle).guidPrefix !=
                 writer->guid().guidPrefix)
         {
-            std::cout << "Engine Participant matched with " << info.last_subscription_handle << std::endl;
+            std::cout << "Engine Participant " << writer->guid().guidPrefix
+                << " matched publication with " << info.last_subscription_handle << std::endl;
         }
     }
     else if (info.current_count_change == -1)
@@ -292,7 +316,8 @@ void EngineWriterListener::on_publication_matched(
         if (eprosima::fastrtps::rtps::iHandle2GUID(info.last_subscription_handle).guidPrefix !=
                 writer->guid().guidPrefix)
         {
-            std::cout << "Engine Participant unmatched with " << info.last_subscription_handle << std::endl;
+            std::cout << "Engine Participant " << writer->guid().guidPrefix
+                << " unmatched publication with " << info.last_subscription_handle << std::endl;
         }
     }
     else
@@ -303,16 +328,18 @@ void EngineWriterListener::on_publication_matched(
 }
 
 void DLReaderListener::on_subscription_matched(
-        DataReader*,
+        DataReader* reader,
         const SubscriptionMatchedStatus& info)
 {
     if (info.current_count_change == 1)
     {
-        std::cout << "Engine Participant matched with a new Dl: " << info.last_publication_handle << std::endl;
+        std::cout << "Engine Participant " << reader->guid().guidPrefix
+                << " matched DL reader with a new Dl: " << info.last_publication_handle << std::endl;
     }
     else if (info.current_count_change == -1)
     {
-        std::cout << "Engine Participant unmatched with Dl: " << info.last_publication_handle << std::endl;
+        std::cout << "Engine Participant " << reader->guid().guidPrefix
+                << " unmatched DL reader with Dl: " << info.last_publication_handle << std::endl;
     }
     else
     {
@@ -331,9 +358,9 @@ void DLReaderListener::on_data_available(
     {
         if (info.valid_data)
         {
-            std::cout << "DL message number: " << ++samples_ << " received from: "
-                << info.sample_identity.writer_guid() << std::endl;
-            std::cout << "DL message: " << data << std::endl << std::endl;
+            std::cout << ">> Engine Participant " << reader->guid().guidPrefix
+                << " receive DL message " << data << " number: " << ++samples_ << " from: "
+                << info.sample_identity.writer_guid().guidPrefix << std::endl << std::endl;
         }
     }
 }
@@ -349,7 +376,8 @@ void AtomizationReaderListener::on_subscription_matched(
         if (eprosima::fastrtps::rtps::iHandle2GUID(info.last_publication_handle).guidPrefix !=
                 reader->guid().guidPrefix)
         {
-            std::cout << "Engine Participant matched with other Engine: " << info.last_publication_handle << std::endl;
+            std::cout << "Engine Participant " << reader->guid().guidPrefix
+                << " matched Atomization reader with other Engine: " << info.last_publication_handle << std::endl;
         }
     }
     else if (info.current_count_change == -1)
@@ -358,7 +386,8 @@ void AtomizationReaderListener::on_subscription_matched(
         if (eprosima::fastrtps::rtps::iHandle2GUID(info.last_publication_handle).guidPrefix !=
                 reader->guid().guidPrefix)
         {
-            std::cout << "Engine Participant unmatched with Engine: " << info.last_publication_handle << std::endl;
+            std::cout << "Engine Participant " << reader->guid().guidPrefix
+                << " unmatched Atomization reader with Engine: " << info.last_publication_handle << std::endl;
         }
     }
     else
@@ -379,9 +408,9 @@ void AtomizationReaderListener::on_data_available(
         // Avoid read data from out own writer
         if (info.sample_identity.writer_guid().guidPrefix != reader->guid().guidPrefix && info.valid_data)
         {
-            std::cout << "Atomization message number: " << ++samples_ << " received from: "
-                << info.sample_identity.writer_guid() << std::endl;
-            std::cout << "Atomization message: " << data << std::endl << std::endl;
+            std::cout << ">> Engine Participant " << reader->guid().guidPrefix
+                << " receive Atomization message " << data << " number: " << ++samples_ << " from: "
+                << info.sample_identity.writer_guid().guidPrefix << std::endl << std::endl;
         }
     }
 }
