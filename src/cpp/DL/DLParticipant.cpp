@@ -19,6 +19,7 @@
 
 #include "DLParticipant.hpp"
 #include "../types/DLOutput/DLOutputPubSubTypes.h"
+#include "../types/utils/utils.hpp"
 
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
 #include <fastdds/dds/domain/qos/DomainParticipantQos.hpp>
@@ -59,6 +60,8 @@ bool DLParticipant::init(
     {
         return false;
     }
+
+    std::cout << "DL Participant created with guid: " << participant_->guid() << std::endl;
 
     //REGISTER THE TYPE
     type_.register_type(participant_);
@@ -121,18 +124,29 @@ void DLParticipant::runThread(
         uint32_t data_size)
 {
     int index = 0;
-    while (!stop_ && (index < samples || samples == 0))
+    while (!stop_.load() && (index < samples || samples == 0))
     {
-        if (!publish(data_size))
+        // It sleeps to simulate DL execution
+        std::this_thread::sleep_for(std::chrono::milliseconds(sleep_ms));
+
+        // In case stop has been pressed between sleep
+        if (stop_.load())
+        {
+            break;
+        }
+
+        // Generate randome data
+        AML_IP_DLOutput data = generate_random_dloutput_data(data_size);
+
+        if (!publish(data))
         {
             std::cout << "ERROR sending message: " << ++index << std::endl;
         }
         else
         {
-            std::cout << "DL Participant sent message: " << ++index << std::endl;
+            std::cout << "DL Participant sent DLOutput number: " << ++index
+                << " message: " << data << std::endl << std::endl;
         }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(sleep_ms));
     }
 }
 
@@ -145,61 +159,21 @@ void DLParticipant::run(
 
     if (samples == 0)
     {
-        std::cout << "DL Participant publishing " << samples << " samples." << std::endl;
+        std::cout << "DL Participant publishing. Please press enter to stop it at any time." << std::endl;
         std::cin.ignore();
-        stop_ = true;
+        stop_.store(true);
     }
     else
     {
-        std::cout << "DL Participant publishing. Please press enter to stop_ it at any time." << std::endl;
+        std::cout << "DL Participant publishing " << samples << " samples." << std::endl;
     }
 
     thread.join();
 }
 
-bool DLParticipant::publish(uint32_t data_size)
+bool DLParticipant::publish(AML_IP_DLOutput data)
 {
-    AML_IP_DLOutput data = generate_random_data_(data_size);
-    writer_->write((void*)&data);
-    return true;
-}
-
-AML_IP_DLOutput DLParticipant::generate_random_data_(uint32_t data_size)
-{
-    AML_IP_DLOutput data;
-    std::vector<AML_IP_Relation> relations;
-
-    int relation_number = rand() % data_size + 1;
-    for (int i = 0; i < relation_number; ++i)
-    {
-        AML_IP_Relation relation_data;
-
-        int l_relation_number = rand() % data_size + 1;
-        int h_relation_number = rand() % data_size + 1;
-
-        std::vector<uint32_t> l_relations(l_relation_number);
-        for (int j = 0; j < l_relation_number; ++j)
-        {
-            l_relations[j] = rand() % data_size;
-        }
-
-        std::vector<uint32_t> h_relations(h_relation_number);
-        for (int j = 0; j < h_relation_number; ++j)
-        {
-            h_relations[j] = rand() % data_size;
-        }
-
-        bool type_of_relation = rand() % 2;
-
-        relation_data.l(l_relation_number);
-        relation_data.h(h_relation_number);
-        relation_data.typeOfRelation(type_of_relation);
-
-        relations.push_back(relation_data);
-    }
-    data.relations(relations);
-
-    return data;
+    return writer_->write((void*)&data);
 }
 
 void DLListener::on_publication_matched(

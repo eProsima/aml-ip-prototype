@@ -45,14 +45,12 @@ public:
     bool init(int domain);
 
     //!Publish a sample
-    bool publish();
+    bool publish(AML_IP_DLOutput data);
 
     //!Run for number samples
     void run(int samples, float period, uint32_t data_size);
 
 protected:
-
-    static AML_IP_DLOutput generate_random_data_(uint32_t data_size);
 
     void runThread(
             int number,

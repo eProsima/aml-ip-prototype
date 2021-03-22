@@ -119,7 +119,7 @@ enum  optionIndex {
  */
 const option::Descriptor usage[] = {
     { UNKNOWN_OPT, 0,"", "",                Arg::None,
-        "Usage: HelloWorldExampleTCP <publisher|subscriber>\n\nGeneral options:" },
+        "Usage: AML IP DL \n\nGeneral options:" },
     { HELP,    0,"h", "help",               Arg::None,      "  -h \t--help  \tProduce help message." },
     { PERIOD, 0, "p", "period",             Arg::Float,
         "  -p <float> \t--period=<float> \tPeriod to send new random data (Default: 2)." },
@@ -128,8 +128,8 @@ const option::Descriptor usage[] = {
         " With samples=0 it keept sending till enter is pressed" },
     { DOMAIN, 0, "d", "domain",             Arg::Numeric,
         "  -d <num> \t--domain=<num> \tNumber of domain (Default: 11)."},
-    { DATA_SIZE, 0, "d", "data",             Arg::Numeric,
-        "  -d <num> \t--data=<num> \tMax number of relations in data to send(Default: 5)." \
+    { DATA_SIZE, 0, "l", "size",             Arg::Numeric,
+        "  -l <num> \t--size=<num> \tMax number of relations in data to send(Default: 5)." \
         " This value also works as seed for randome generation."},
     { 0, 0, 0, 0, 0, 0 }
 };
