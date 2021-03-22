@@ -29,6 +29,8 @@
 #include <fastdds/dds/topic/qos/TopicQos.hpp>
 #include <fastdds/dds/publisher/qos/DataWriterQos.hpp>
 #include <fastdds/dds/subscriber/qos/DataReaderQos.hpp>
+#include <fastrtps/rtps/common/InstanceHandle.h>
+#include <fastrtps/xmlparser/XMLProfileManager.h>
 
 #include <atomic>
 
@@ -56,8 +58,15 @@ EngineParticipant::EngineParticipant()
 bool EngineParticipant::init(
         int domain)
 {
+    // Load profiles
+    eprosima::fastrtps::xmlparser::XMLProfileManager::loadDefaultXMLFile();
+    DomainParticipantFactory::get_instance()->load_profiles();
+
     //CREATE THE PARTICIPANT
-    DomainParticipantQos pqos;
+    DomainParticipantQos pqos = DomainParticipantFactory::get_instance()->get_default_participant_qos();
+    if (false == pqos.transport().use_builtin_transports)
+        std::cout << "TOMA MORENOOOO" << std::endl;
+
     pqos.wire_protocol().builtin.discovery_config.leaseDuration = eprosima::fastrtps::c_TimeInfinite;
     pqos.wire_protocol().builtin.discovery_config.leaseDuration_announcementperiod =
             eprosima::fastrtps::Duration_t(2, 0);
@@ -233,7 +242,7 @@ void EngineParticipant::runThread(
         else
         {
             std::cout << "Engine sent atomization number: " << ++index
-                << " message: " << data << std::endl;
+                << " message: " << data << std::endl << std::endl;
         }
     }
 }
@@ -265,16 +274,26 @@ bool EngineParticipant::publish(AML_IP_Atomization data)
 }
 
 void EngineWriterListener::on_publication_matched(
-        eprosima::fastdds::dds::DataWriter*,
+        eprosima::fastdds::dds::DataWriter* writer,
         const eprosima::fastdds::dds::PublicationMatchedStatus& info)
 {
     if (info.current_count_change == 1)
     {
-        std::cout << "Engine Participant matched with " << info.last_subscription_handle << std::endl;
+        // Avoid informing when it is its own publisher
+        if (eprosima::fastrtps::rtps::iHandle2GUID(info.last_subscription_handle).guidPrefix !=
+                writer->guid().guidPrefix)
+        {
+            std::cout << "Engine Participant matched with " << info.last_subscription_handle << std::endl;
+        }
     }
     else if (info.current_count_change == -1)
     {
-        std::cout << "Engine Participant unmatched with " << info.last_subscription_handle << std::endl;
+        // Avoid informing when it is its own publisher
+        if (eprosima::fastrtps::rtps::iHandle2GUID(info.last_subscription_handle).guidPrefix !=
+                writer->guid().guidPrefix)
+        {
+            std::cout << "Engine Participant unmatched with " << info.last_subscription_handle << std::endl;
+        }
     }
     else
     {
@@ -321,16 +340,26 @@ void DLReaderListener::on_data_available(
 
 
 void AtomizationReaderListener::on_subscription_matched(
-        DataReader*,
+        DataReader* reader,
         const SubscriptionMatchedStatus& info)
 {
     if (info.current_count_change == 1)
     {
-        std::cout << "Engine Participant matched with other Engine: " << info.last_publication_handle << std::endl;
+        // Avoid informing when it is its own publisher
+        if (eprosima::fastrtps::rtps::iHandle2GUID(info.last_publication_handle).guidPrefix !=
+                reader->guid().guidPrefix)
+        {
+            std::cout << "Engine Participant matched with other Engine: " << info.last_publication_handle << std::endl;
+        }
     }
     else if (info.current_count_change == -1)
     {
-        std::cout << "Engine Participant unmatched with Engine: " << info.last_publication_handle << std::endl;
+        // Avoid informing when it is its own publisher
+        if (eprosima::fastrtps::rtps::iHandle2GUID(info.last_publication_handle).guidPrefix !=
+                reader->guid().guidPrefix)
+        {
+            std::cout << "Engine Participant unmatched with Engine: " << info.last_publication_handle << std::endl;
+        }
     }
     else
     {

@@ -9,7 +9,7 @@
         <transport_descriptors>
             <transport_descriptor>
                 <transport_id>tcp_transport</transport_id>
-                <type>TCP4</type>
+                <type>TCPv4</type>
             </transport_descriptor>
         </transport_descriptors>
 

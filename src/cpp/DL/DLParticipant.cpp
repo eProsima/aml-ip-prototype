@@ -26,6 +26,7 @@
 #include <fastdds/dds/publisher/qos/PublisherQos.hpp>
 #include <fastdds/dds/topic/qos/TopicQos.hpp>
 #include <fastdds/dds/publisher/qos/DataWriterQos.hpp>
+#include <fastrtps/xmlparser/XMLProfileManager.h>
 
 #include <stdlib.h>
 #include <atomic>
@@ -47,8 +48,15 @@ DLParticipant::DLParticipant()
 bool DLParticipant::init(
         int domain)
 {
+    // Load profiles
+    eprosima::fastrtps::xmlparser::XMLProfileManager::loadDefaultXMLFile();
+    DomainParticipantFactory::get_instance()->load_profiles();
+
     //CREATE THE PARTICIPANT
-    DomainParticipantQos pqos;
+    DomainParticipantQos pqos = DomainParticipantFactory::get_instance()->get_default_participant_qos();
+    if (false == pqos.transport().use_builtin_transports)
+        std::cout << "TOMA MORENOOOO" << std::endl; pqos = PARTICIPANT_QOS_DEFAULT;
+
     pqos.wire_protocol().builtin.discovery_config.leaseDuration = eprosima::fastrtps::c_TimeInfinite;
     pqos.wire_protocol().builtin.discovery_config.leaseDuration_announcementperiod =
             eprosima::fastrtps::Duration_t(2, 0);
