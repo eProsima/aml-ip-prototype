@@ -26,6 +26,7 @@
 #include <fastdds/dds/topic/qos/TopicQos.hpp>
 #include <fastdds/dds/publisher/qos/DataWriterQos.hpp>
 
+#include <stdlib.h>
 #include <atomic>
 
 using namespace eprosima::fastdds::dds;
@@ -116,12 +117,13 @@ DLParticipant::~DLParticipant()
 
 void DLParticipant::runThread(
         int samples,
-        long sleep_ms)
+        long sleep_ms,
+        uint32_t data_size)
 {
     int index = 0;
     while (!stop_ && (index < samples || samples == 0))
     {
-        if (!publish())
+        if (!publish(data_size))
         {
             std::cout << "ERROR sending message: " << ++index << std::endl;
         }
@@ -136,9 +138,10 @@ void DLParticipant::runThread(
 
 void DLParticipant::run(
         int samples,
-        float period)
+        float period,
+        uint32_t data_size)
 {
-    std::thread thread(&DLParticipant::runThread, this, samples, static_cast<long>(period * 1000));
+    std::thread thread(&DLParticipant::runThread, this, samples, static_cast<long>(period * 1000), data_size);
 
     if (samples == 0)
     {
@@ -154,16 +157,49 @@ void DLParticipant::run(
     thread.join();
 }
 
-bool DLParticipant::publish()
+bool DLParticipant::publish(uint32_t data_size)
 {
-    AML_IP_DLOutput data = generate_random_data_();
+    AML_IP_DLOutput data = generate_random_data_(data_size);
     writer_->write((void*)&data);
     return true;
 }
 
-AML_IP_DLOutput DLParticipant::generate_random_data_()
+AML_IP_DLOutput DLParticipant::generate_random_data_(uint32_t data_size)
 {
-    return AML_IP_DLOutput();
+    AML_IP_DLOutput data;
+    std::vector<AML_IP_Relation> relations;
+
+    int relation_number = rand() % data_size + 1;
+    for (int i = 0; i < relation_number; ++i)
+    {
+        AML_IP_Relation relation_data;
+
+        int l_relation_number = rand() % data_size + 1;
+        int h_relation_number = rand() % data_size + 1;
+
+        std::vector<uint32_t> l_relations(l_relation_number);
+        for (int j = 0; j < l_relation_number; ++j)
+        {
+            l_relations[j] = rand() % data_size;
+        }
+
+        std::vector<uint32_t> h_relations(h_relation_number);
+        for (int j = 0; j < h_relation_number; ++j)
+        {
+            h_relations[j] = rand() % data_size;
+        }
+
+        bool type_of_relation = rand() % 2;
+
+        relation_data.l(l_relation_number);
+        relation_data.h(h_relation_number);
+        relation_data.typeOfRelation(type_of_relation);
+
+        relations.push_back(relation_data);
+    }
+    data.relations(relations);
+
+    return data;
 }
 
 void DLListener::on_publication_matched(

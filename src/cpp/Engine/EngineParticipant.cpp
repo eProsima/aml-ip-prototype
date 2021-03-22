@@ -225,9 +225,10 @@ void EngineParticipant::runThread(
 
 void EngineParticipant::run(
         int samples,
-        float period)
+        float period,
+        uint32_t data_size)
 {
-    std::thread thread(&EngineParticipant::runThread, this, samples, static_cast<long>(period * 1000));
+    std::thread thread(&EngineParticipant::runThread, this, samples, static_cast<long>(period * 1000), data_size);
 
     if (samples == 0)
     {
@@ -243,16 +244,37 @@ void EngineParticipant::run(
     thread.join();
 }
 
-bool EngineParticipant::publish()
+bool EngineParticipant::publish(uint32_t data_size)
 {
-    AML_IP_Atomization data = generate_random_data_();
+    AML_IP_Atomization data = generate_random_data_(data_size);
     writer_->write((void*)&data);
     return true;
 }
 
-AML_IP_Atomization EngineParticipant::generate_random_data_()
+AML_IP_Atomization EngineParticipant::generate_random_data_(uint32_t data_size)
 {
-    return AML_IP_Atomization();
+    AML_IP_Atomization data;
+    std::vector<AML_IP_Atom> atoms;
+
+    int atoms_number = rand() % data_size + 1;
+    for (int i = 0; i < atoms_number; ++i)
+    {
+        AML_IP_Atom atom_data;
+
+        // The size of the atoms are always the same
+        std::vector<uint32_t> ucs(data_size);
+        for (int j = 0; j < data_size; ++j)
+        {
+            ucs[j] = rand();
+        }
+
+        atom_data.ucs(ucs);
+
+        atoms.push_back(atom_data);
+    }
+    data.atoms(atoms);
+
+    return data;
 }
 
 void EngineWriterListener::on_publication_matched(

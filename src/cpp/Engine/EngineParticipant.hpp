@@ -54,15 +54,16 @@ public:
     bool publish();
 
     //!Run for number samples
-    void run(int samples, float period);
+    void run(int samples, float period, uint32_t data_size);
 
 protected:
 
-    static AML_IP_Atomization generate_random_data_();
+    static AML_IP_Atomization generate_random_data_(uint32_t data_size);
 
     void runThread(
             int number,
-            long sleep_ms);
+            long sleep_ms,
+            uint32_t data_size);
 
 private:
 

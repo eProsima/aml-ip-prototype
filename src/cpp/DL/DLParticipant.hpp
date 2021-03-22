@@ -48,15 +48,16 @@ public:
     bool publish();
 
     //!Run for number samples
-    void run(int samples, float period);
+    void run(int samples, float period, uint32_t data_size);
 
 protected:
 
-    static AML_IP_DLOutput generate_random_data_();
+    static AML_IP_DLOutput generate_random_data_(uint32_t data_size);
 
     void runThread(
             int number,
-            long sleep_ms);
+            long sleep_ms,
+            uint32_t data_size);
 
 private:
 
@@ -73,6 +74,8 @@ private:
     eprosima::fastdds::dds::TypeSupport type_;
 
     std::atomic_bool stop_;
+
+    uint_fast32_t data_size;
 };
 
 class DLListener : public eprosima::fastdds::dds::DataWriterListener

@@ -20,6 +20,7 @@
 #include "DLParticipant.hpp"
 
 #include <string>
+#include <stdlib.h>
 
 #include "../utils/optionparser.h"
 
@@ -109,7 +110,8 @@ enum  optionIndex {
     HELP,
     PERIOD,
     SAMPLES,
-    DOMAIN
+    DOMAIN,
+    DATA_SIZE
 };
 
 /*
@@ -126,6 +128,9 @@ const option::Descriptor usage[] = {
         " With samples=0 it keept sending till enter is pressed" },
     { DOMAIN, 0, "d", "domain",             Arg::Numeric,
         "  -d <num> \t--domain=<num> \tNumber of domain (Default: 11)."},
+    { DATA_SIZE, 0, "d", "data",             Arg::Numeric,
+        "  -d <num> \t--data=<num> \tMax number of relations in data to send(Default: 5)." \
+        " This value also works as seed for randome generation."},
     { 0, 0, 0, 0, 0, 0 }
 };
 
@@ -153,6 +158,7 @@ int main(int argc, char** argv)
     float period = 2;
     int samples = 10;
     int domain = 11;
+    uint32_t data_size = 5;
 
     // No required arguments
     if (argc > 0)
@@ -199,6 +205,10 @@ int main(int argc, char** argv)
                     domain = std::strtol(opt.arg, nullptr, 10);
                     break;
 
+                case DATA_SIZE:
+                    data_size = std::strtol(opt.arg, nullptr, 10);
+                    break;
+
                 case UNKNOWN_OPT:
                     option::printUsage(fwrite, stdout, usage, columns);
                     return 1;
@@ -212,10 +222,14 @@ int main(int argc, char** argv)
         return 1;
     }
 
+    // Initialize random seed
+    srand(data_size);
+
+    // Create Participant object and run thread of publishing in loop
     DLParticipant part;
     if (part.init(domain))
     {
-        part.run(samples, period);
+        part.run(samples, period, data_size);
     }
     else
     {
