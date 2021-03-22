@@ -2,8 +2,30 @@
 
 ## Instructions
 
-1. source fastrtps project
-    1. $> source <fastrtps_path>/install/setup.bash
+Set `${WORKSPACE_PATH}` environmental variable for the path AML-IP workspace.
+
+Download the workspace:
+```sh
+mkdir -p ${WORKSPACE_PATH}/AML-IP
+cd ${WORKSPACE_PATH}/AML-IP
+wget https://raw.githubusercontent.com/eProsima/aml-ip-prototype/main/amlip.repos
+mkdir src
+vcs import src < amlip.repos
+```
+
+Build the workspace:
+```sh
+cd ${WORKSPACE_PATH}/AML-IP
+colcon build --cmake-clean-cache
+```
+
+Execute in a terminal:
+```sh
+cd ${WORKSPACE_PATH}/AML-IP
+# Scripts that could be run:
+# AML.sh | dl.sh | engine.sh | AML_TCP.sh
+bash ${WORKSPACE_PATH}/AML-IP/src/amlip/src/scripts/AML.sh ${WORKSPACE_PATH}/AML-IP
+```
 
 ## Requirements
 

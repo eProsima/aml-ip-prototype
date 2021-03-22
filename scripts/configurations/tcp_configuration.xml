@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<dds>
+    <library_settings>
+	    <intraprocess_delivery>OFF</intraprocess_delivery> <!-- OFF | USER_DATA_ONLY | FULL -->
+    </library_settings>
+
+    <profiles>
+
+        <transport_descriptors>
+            <transport_descriptor>
+                <transport_id>tcp_transport</transport_id>
+                <type>TCP4</type>
+            </transport_descriptor>
+        </transport_descriptors>
+
+        <participant profile_name="tcp_participant_default" is_default_profile="true">
+            <rtps>
+                <useBuiltinTransports>false</useBuiltinTransports>
+                <userTransports>
+                    <transport_id>tcp_transport</transport_id>
+                </userTransports>
+            </rtps>
+        </participant>
+
+    </profiles>
+</dds>
