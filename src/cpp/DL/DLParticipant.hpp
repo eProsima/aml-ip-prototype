@@ -42,7 +42,12 @@ public:
     virtual ~DLParticipant();
 
     //!Initialize
-    bool init(int domain);
+    bool init(
+        int domain,
+        int connection_port,
+        std::string connection_address,
+        int listening_port,
+        std::string listening_address);
 
     //!Publish a sample
     bool publish(AML_IP_DLOutput data);

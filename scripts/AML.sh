@@ -6,5 +6,6 @@
 # Argument 0 : path to the AML-IP workspace
 WORKSPACE=${1}
 
-${WORKSPACE}/build/AML_IP_Prototype/AML_IP_DL &
-${WORKSPACE}/build/AML_IP_Prototype/AML_IP_Engine
+# Set ports to -1 to use UDP and intraprocess
+${WORKSPACE}/build/AML_IP_Prototype/AML_IP_DL --connection-port=-1 --listening-port=-1 | tee aml_udp_dl_result.log &
+${WORKSPACE}/build/AML_IP_Prototype/AML_IP_Engine --connection-port=-1 --listening-port=-1 | tee aml_udp_engine_result.log

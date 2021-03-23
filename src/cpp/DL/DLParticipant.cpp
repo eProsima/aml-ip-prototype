@@ -28,6 +28,7 @@
 #include <fastdds/dds/publisher/qos/DataWriterQos.hpp>
 #include <fastrtps/xmlparser/XMLProfileManager.h>
 #include <fastdds/rtps/transport/TCPv4TransportDescriptor.h>
+#include <fastrtps/utils/IPLocator.h>
 
 #include <stdlib.h>
 #include <atomic>
@@ -47,7 +48,11 @@ DLParticipant::DLParticipant()
 }
 
 bool DLParticipant::init(
-        int domain)
+        int domain,
+        int connection_port,
+        std::string connection_address,
+        int listening_port,
+        std::string listening_address)
 {
     // Load profiles
     eprosima::fastrtps::xmlparser::XMLProfileManager::loadDefaultXMLFile();
@@ -62,23 +67,41 @@ bool DLParticipant::init(
     pqos.name("DL Participant");
 
     // TCP Manual configuration
-    // pqos.transport().use_builtin_transports = false;
+    // TCP client configuration
+    if (connection_port != -1)
+    {
+        pqos.transport().use_builtin_transports = false;
 
-    // std::shared_ptr<TCPv4TransportDescriptor> descriptor = std::make_shared<TCPv4TransportDescriptor>();
+        std::shared_ptr<TCPv4TransportDescriptor> descriptor = std::make_shared<TCPv4TransportDescriptor>();
 
-    // descriptor->sendBufferSize = 0;
-    // descriptor->receiveBufferSize = 0;
+        descriptor->sendBufferSize = 0;
+        descriptor->receiveBufferSize = 0;
 
-    // int port = 5100;
+        Locator initial_peer_locator;
+        initial_peer_locator.kind = LOCATOR_KIND_TCPv4;
 
-    // Locator initial_peer_locator;
-    // initial_peer_locator.kind = LOCATOR_KIND_TCPv4;
+        eprosima::fastrtps::rtps::IPLocator::setIPv4(initial_peer_locator, connection_address);
+        initial_peer_locator.port = connection_port;
+        pqos.wire_protocol().builtin.initialPeersList.push_back(initial_peer_locator); // Publisher's meta channel
 
-    // IPLocator::setIPv4(initial_peer_locator, "127.0.0.1");
-    // initial_peer_locator.port = port;
-    // pqos.wire_protocol().builtin.initialPeersList.push_back(initial_peer_locator); // Publisher's meta channel
+        pqos.transport().user_transports.push_back(descriptor);
+    }
 
-    // pqos.transport().user_transports.push_back(descriptor);
+    // TCP server configuration
+    if (listening_port != -1)
+    {
+        // No problem repeating this operation
+        pqos.transport().use_builtin_transports = false;
+
+        std::shared_ptr<TCPv4TransportDescriptor> descriptor = std::make_shared<TCPv4TransportDescriptor>();
+
+        descriptor->sendBufferSize = 0;
+        descriptor->receiveBufferSize = 0;
+
+        descriptor->add_listener_port(listening_port);
+        descriptor->set_WAN_address(listening_address);
+        pqos.transport().user_transports.push_back(descriptor);
+    }
 
     participant_ = DomainParticipantFactory::get_instance()->create_participant(domain, pqos);
 
@@ -166,13 +189,13 @@ void DLParticipant::runThread(
 
         if (!publish(data))
         {
-            std::cout << "<< DL Participant " << participant_->guid().guidPrefix
+            std::cout << std::endl << "<< DL Participant " << participant_->guid().guidPrefix
                 << " ERROR sending message: " << ++index << std::endl;
         }
         else
         {
-            std::cout << "<< DL Participant " << participant_->guid().guidPrefix
-                << " sent DLOutput number: " << ++index << " message: " << data << std::endl << std::endl;
+            std::cout << std::endl << "<< DL Participant " << participant_->guid().guidPrefix
+                << " sent DLOutput number: " << ++index << " message: " << data << std::endl;
         }
     }
 }

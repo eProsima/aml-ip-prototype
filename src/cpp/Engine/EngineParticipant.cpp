@@ -58,7 +58,11 @@ EngineParticipant::EngineParticipant()
 }
 
 bool EngineParticipant::init(
-        int domain)
+        int domain,
+        int connection_port,
+        std::string connection_address,
+        int listening_port,
+        std::string listening_address)
 {
     // Load profiles
     eprosima::fastrtps::xmlparser::XMLProfileManager::loadDefaultXMLFile();
@@ -73,23 +77,41 @@ bool EngineParticipant::init(
     pqos.name("Engine Participant");
 
     // TCP Manual configuration
-    // pqos.transport().use_builtin_transports = false;
-    // std::shared_ptr<TCPv4TransportDescriptor> descriptor = std::make_shared<TCPv4TransportDescriptor>();
+    // TCP client configuration
+    if (connection_port != -1)
+    {
+        pqos.transport().use_builtin_transports = false;
 
-    // descriptor->sendBufferSize = 0;
-    // descriptor->receiveBufferSize = 0;
+        std::shared_ptr<TCPv4TransportDescriptor> descriptor = std::make_shared<TCPv4TransportDescriptor>();
 
-    // int port = 5100;
+        descriptor->sendBufferSize = 0;
+        descriptor->receiveBufferSize = 0;
 
-    // Locator initial_peer_locator;
-    // initial_peer_locator.kind = LOCATOR_KIND_TCPv4;
+        Locator initial_peer_locator;
+        initial_peer_locator.kind = LOCATOR_KIND_TCPv4;
 
-    // eprosima::fastrtps::rtps::IPLocator::setIPv4(initial_peer_locator, "127.0.0.1");
-    // initial_peer_locator.port = port;
-    // pqos.wire_protocol().builtin.initialPeersList.push_back(initial_peer_locator); // Publisher's meta channel
+        eprosima::fastrtps::rtps::IPLocator::setIPv4(initial_peer_locator, connection_address);
+        initial_peer_locator.port = connection_port;
+        pqos.wire_protocol().builtin.initialPeersList.push_back(initial_peer_locator); // Publisher's meta channel
 
-    // descriptor->add_listener_port(port);
-    // pqos.transport().user_transports.push_back(descriptor);
+        pqos.transport().user_transports.push_back(descriptor);
+    }
+
+    // TCP server configuration
+    if (listening_port != -1)
+    {
+        // No problem repeating this operation
+        pqos.transport().use_builtin_transports = false;
+
+        std::shared_ptr<TCPv4TransportDescriptor> descriptor = std::make_shared<TCPv4TransportDescriptor>();
+
+        descriptor->sendBufferSize = 0;
+        descriptor->receiveBufferSize = 0;
+
+        descriptor->add_listener_port(listening_port);
+        descriptor->set_WAN_address(listening_address);
+        pqos.transport().user_transports.push_back(descriptor);
+    }
 
     participant_ = DomainParticipantFactory::get_instance()->create_participant(domain, pqos);
 
@@ -256,14 +278,14 @@ void EngineParticipant::runThread(
 
         if (!publish(data))
         {
-            std::cout << "<< Engine Participant " << participant_->guid().guidPrefix
+            std::cout << std::endl << "<< Engine Participant " << participant_->guid().guidPrefix
                 << " ERROR sending message: " << ++index << std::endl;
         }
         else
         {
-            std::cout << "<< Engine Participant " << participant_->guid().guidPrefix
+            std::cout << std::endl << "<< Engine Participant " << participant_->guid().guidPrefix
                 << " sent atomization number: " << ++index
-                << " message: " << data << std::endl << std::endl;
+                << " message: " << data << std::endl;
         }
     }
 }
@@ -360,7 +382,7 @@ void DLReaderListener::on_data_available(
         {
             std::cout << ">> Engine Participant " << reader->guid().guidPrefix
                 << " receive DL message " << data << " number: " << ++samples_ << " from: "
-                << info.sample_identity.writer_guid().guidPrefix << std::endl << std::endl;
+                << info.sample_identity.writer_guid().guidPrefix << std::endl;
         }
     }
 }
@@ -410,7 +432,7 @@ void AtomizationReaderListener::on_data_available(
         {
             std::cout << ">> Engine Participant " << reader->guid().guidPrefix
                 << " receive Atomization message " << data << " number: " << ++samples_ << " from: "
-                << info.sample_identity.writer_guid().guidPrefix << std::endl << std::endl;
+                << info.sample_identity.writer_guid().guidPrefix << std::endl;
         }
     }
 }

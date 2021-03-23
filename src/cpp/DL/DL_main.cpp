@@ -111,7 +111,11 @@ enum  optionIndex {
     PERIOD,
     SAMPLES,
     DOMAIN,
-    DATA_SIZE
+    DATA_SIZE,
+    CONNECTION_PORT,
+    CONNECTION_ADDRESS,
+    LISTENING_PORT,
+    LISTENING_ADDRESS
 };
 
 /*
@@ -119,7 +123,9 @@ enum  optionIndex {
  */
 const option::Descriptor usage[] = {
     { UNKNOWN_OPT, 0,"", "",                Arg::None,
-        "Usage: AML IP DL \n\nGeneral options:" },
+        "Usage: AML IP DL \n" \
+        "If TCP options are set, TCP transport will be use as client, server or both.\n" \
+        "General options:" },
     { HELP,    0,"h", "help",               Arg::None,      "  -h \t--help  \tProduce help message." },
     { PERIOD, 0, "p", "period",             Arg::Float,
         "  -p <float> \t--period=<float> \tPeriod to send new random data (Default: 2)." },
@@ -131,6 +137,14 @@ const option::Descriptor usage[] = {
     { DATA_SIZE, 0, "l", "size",             Arg::Numeric,
         "  -l <num> \t--size=<num> \tMax number of relations in data to send(Default: 5)." \
         " This value also works as seed for randome generation."},
+    { CONNECTION_PORT, 0, "", "connection-port",             Arg::Numeric,
+        "  --connection-port=<num> \tPort where the TCP server is listening (Default: 5100)."},
+    { CONNECTION_ADDRESS, 0, "", "connection-address",             Arg::String,
+        "  --connection-address=<address> \tIP address where the TCP server is listening (Default: '127.0.0.1')."},
+    { LISTENING_PORT, 0, "", "listening-port",             Arg::Numeric,
+        "  --listening-port=<num> \tPort to listen as TCP server (Default: -1)."},
+    { LISTENING_ADDRESS, 0, "", "listening-address",             Arg::String,
+        "  --listening-address=<address> \tIP address to listen as TCP server (Default: '')."},
     { 0, 0, 0, 0, 0, 0 }
 };
 
@@ -159,6 +173,10 @@ int main(int argc, char** argv)
     int samples = 10;
     int domain = 11;
     uint32_t data_size = 5;
+    int connection_port = 5100;
+    std::string connection_address("127.0.0.1");
+    int listening_port = -1;
+    std::string listening_address("");
 
     // No required arguments
     if (argc > 0)
@@ -209,6 +227,22 @@ int main(int argc, char** argv)
                     data_size = std::strtol(opt.arg, nullptr, 10);
                     break;
 
+                case CONNECTION_PORT:
+                    connection_port = std::strtol(opt.arg, nullptr, 10);
+                    break;
+
+                case CONNECTION_ADDRESS:
+                    connection_address = opt.arg;
+                    break;
+
+                case LISTENING_PORT:
+                    listening_port = std::strtol(opt.arg, nullptr, 10);
+                    break;
+
+                case LISTENING_ADDRESS:
+                    listening_address = opt.arg;
+                    break;
+
                 case UNKNOWN_OPT:
                     option::printUsage(fwrite, stdout, usage, columns);
                     return 1;
@@ -227,7 +261,7 @@ int main(int argc, char** argv)
 
     // Create Participant object and run thread of publishing in loop
     DLParticipant part;
-    if (part.init(domain))
+    if (part.init(domain, connection_port, connection_address, listening_port, listening_address))
     {
         part.run(samples, period, data_size);
     }

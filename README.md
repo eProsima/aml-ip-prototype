@@ -7,8 +7,8 @@ Set `${WORKSPACE_PATH}` environmental variable for the path AML-IP workspace.
 Download the workspace:
 
 ```sh
-mkdir -p ${WORKSPACE_PATH}/AML-IP
-cd ${WORKSPACE_PATH}/AML-IP
+mkdir -p ${WORKSPACE_PATH}
+cd ${WORKSPACE_PATH}
 wget https://raw.githubusercontent.com/eProsima/aml-ip-prototype/main/amlip.repos
 mkdir src
 vcs import src < amlip.repos
@@ -17,17 +17,17 @@ vcs import src < amlip.repos
 Build the workspace:
 
 ```sh
-cd ${WORKSPACE_PATH}/AML-IP
+cd ${WORKSPACE_PATH}
 colcon build --cmake-clean-cache
 ```
 
 Execute in a terminal:
 
 ```sh
-cd ${WORKSPACE_PATH}/AML-IP
+cd ${WORKSPACE_PATH}
 # Scripts that could be run:
 # AML.sh | dl.sh | engine.sh | AML_TCP.sh
-bash ${WORKSPACE_PATH}/AML-IP/src/amlip/scripts/AML.sh ${WORKSPACE_PATH}/AML-IP
+bash ${WORKSPACE_PATH}/src/amlip/scripts/AML.sh ${WORKSPACE_PATH}/AML-IP
 ```
 
 ## Requirements
@@ -77,3 +77,18 @@ One header only file is needed:
 1. Execute fastddsgen with idl Files
     1. ws$> fastrtpsgen/scripts/fastddsgen src/types/Atomization/Atomization.idl
 
+### Tests
+
+1. Transport by default
+    1. cmd: `bash ./src/amlip/scripts/AML.sh`
+    1. Working in same host
+
+1. TCP transport in same bash
+    1. cmd: `bash ./src/amlip/scripts/AML.sh`
+    1. Working in same host
+
+1. TCP transport in different bash
+    1. Working in same host
+        1. cmd:
+            1. `bash ./src/amlip/scripts/dl.sh . 5100 "127.0.0.1"`
+            1. `bash ./src/amlip/scripts/engine.sh . 5100 "127.0.0.1"`
