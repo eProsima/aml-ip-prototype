@@ -22,6 +22,17 @@
                 <userTransports>
                     <transport_id>tcp_transport</transport_id>
                 </userTransports>
+                <!--  This Generates an error in the last message
+                <builtin>
+                    <initialPeersList>
+                        <locator>
+                            <tcpv4>
+                                <address>127.0.0.1</address>
+                                <physical_port>5102</physical_port>
+                            </tcpv4>
+                        </locator>
+                    </initialPeersList>
+                </builtin> -->
             </rtps>
         </participant>
 
