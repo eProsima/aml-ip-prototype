@@ -52,3 +52,24 @@ user  : ip
 psw   : raspberry
 ssh pi@192.168.20.15
 ```
+
+## Commands
+
+```sh
+# pi@raspfarm05:~/amlip $
+source install/setup.bash
+./install/discovery-server/examples/C++/HelloWorldExampleDS/HelloWorldExampleDS server --tcp --ip=192.168.20.15:5250 --wan=192.168.20.15
+
+# pi@annapurna-raspi:~/Workspace/amlip $
+source install/setup.bash
+./install/discovery-server/examples/C++/HelloWorldExampleDS/HelloWorldExampleDS publisher --tcp --ip=192.168.20.15:5250 --wan=192.168.1.132 -c 100
+
+# pi@elbrus-raspi:~/Workspace/amlip $
+source install/setup.bash
+./install/discovery-server/examples/C++/HelloWorldExampleDS/HelloWorldExampleDS subscriber --tcp --ip=192.168.20.15:5250 --wan=192.168.1.131
+```
+
+## Results
+
+They match.
+There is not message interchange.
