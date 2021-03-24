@@ -26,7 +26,7 @@ Execute in a terminal:
 ```sh
 cd ${WORKSPACE_PATH}
 # Executables that could be run:
-# AML_IP_DL | AML_Engine
+# AML_IP_DL | AML_IP_Engine | AML_IP_DiscoveryServer
 ./${WORKSPACE_PATH}/install/AML_IP_Prototype/bin/AML_IP_DL # params (use -h to check all arguments)
 ```
 

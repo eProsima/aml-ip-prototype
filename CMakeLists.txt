@@ -97,3 +97,18 @@ target_compile_definitions(AML_IP_Engine PRIVATE
 target_link_libraries(AML_IP_Engine fastrtps fastcdr foonathan_memory)
 install(TARGETS AML_IP_Engine
     RUNTIME DESTINATION ${BIN_INSTALL_DIR})
+
+# Disvoery Server executable
+message(STATUS "Configuring AML_IP_DiscoveryServer executable...")
+set(AML_IP_DiscoveryServer_SOURCE
+    src/cpp/DiscoveryServer/DiscoveryServerParticipant.cpp
+    src/cpp/DiscoveryServer/DiscoveryServer_main.cpp)
+
+add_executable(AML_IP_DiscoveryServer ${TYPES_SOURCES_CXX} ${AML_IP_DiscoveryServer_SOURCE})
+target_compile_definitions(AML_IP_DiscoveryServer PRIVATE
+    $<$<AND:$<NOT:$<BOOL:${WIN32}>>,$<STREQUAL:"${CMAKE_BUILD_TYPE}","Debug">>:__DEBUG>
+    $<$<BOOL:${INTERNAL_DEBUG}>:__INTERNALDEBUG> # Internal debug activated.
+    )
+target_link_libraries(AML_IP_DiscoveryServer fastrtps fastcdr foonathan_memory)
+install(TARGETS AML_IP_DiscoveryServer
+    RUNTIME DESTINATION ${BIN_INSTALL_DIR})
