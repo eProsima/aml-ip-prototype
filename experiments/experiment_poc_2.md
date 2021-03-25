@@ -52,3 +52,53 @@ user  : ip
 psw   : raspberry
 ssh pi@192.168.20.15
 ```
+
+## Commands
+
+```sh
+# pi@raspfarm05:~/amlip $
+source install/setup.bash
+./install/AML_IP_Prototype/bin/AML_IP_DiscoveryServer -t 5100 -a 192.168.20.15 --time 30
+
+# pi@annapurna-raspi:~/Workspace/amlip $
+source install/setup.bash
+./install/discovery-server/examples/C++/HelloWorldExampleDS/HelloWorldExampleDS publisher --tcp --ip=192.168.20.15:5250 --wan=192.168.1.132 -c 100
+
+# pi@elbrus-raspi:~/Workspace/amlip $
+source install/setup.bash
+./install/discovery-server/examples/C++/HelloWorldExampleDS/HelloWorldExampleDS subscriber --tcp --ip=192.168.20.15:5250 --wan=192.168.1.131
+```
+
+## Results
+
+They match.
+There is not message interchange.
+
+### Configuration commands
+
+```bash
+# enter raspi farm and compile last version
+ssh pi@192.168.20.15
+raspberry
+cd amlip/
+# these commands may need github user and password
+vcs import src < amlip.repos
+vcs pull
+colcon build --cmake-clean-cache --cmake-args -DCOMPILE_EXAMPLES
+
+# enter raspi annapurna and copy compilation
+ssh pi@192.168.1.132 -p 10300
+Annapurna
+cd Workspace/amlip/
+rm -rf install/
+scp -r pi@192.168.20.15:/home/pi/amlip/install .
+raspberry
+
+# enter raspi elbrus and copy compilation
+ssh pi@192.168.1.131 -p 10300
+Elbrus
+cd Workspace/amlip/
+rm -rf install/
+scp -r pi@192.168.20.15:/home/pi/amlip/install .
+raspberry
+```

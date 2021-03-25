@@ -61,6 +61,10 @@ protected:
 private:
 
     eprosima::fastdds::dds::DomainParticipant* participant_;
+
+    std::string address_;
+
+    int tcp_port_;
 };
 
 // TODO check if DS allows to implement with a Listener

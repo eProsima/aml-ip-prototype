@@ -155,9 +155,9 @@ int main(int argc, char** argv)
 #endif
 
     // Get executable arguments
-    int tcp_port = -1;
+    int tcp_port = 5100;
     int udp_port = -1;
-    uint32_t time;
+    uint32_t time = 0;
     std::string address("");
 
     // No required arguments

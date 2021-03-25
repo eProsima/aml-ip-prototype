@@ -42,6 +42,8 @@ using namespace eprosima::fastrtps::rtps;
 
 DiscoveryServerParticipant::DiscoveryServerParticipant()
     : participant_(nullptr)
+    , address_("")
+    , tcp_port_(0)
 {
 }
 
@@ -50,6 +52,10 @@ bool DiscoveryServerParticipant::init(
         int udp_port,
         std::string address)
 {
+    // Set internal variables for print propouse
+    tcp_port_ = tcp_port;
+    address_ = address;
+
     // Load profiles
     eprosima::fastrtps::xmlparser::XMLProfileManager::loadDefaultXMLFile();
     DomainParticipantFactory::get_instance()->load_profiles();
@@ -126,12 +132,15 @@ void DiscoveryServerParticipant::run(
     if (time == 0)
     {
         std::cout << "DiscoveryServer Participant " << participant_->guid().guidPrefix
-            << " running. Please press enter to stop it at any time." << std::endl;
+            << " running in address " << address_ << " port " << tcp_port_ << std::endl
+            << "Please press enter to stop it at any time." << std::endl;
         std::cin.ignore();
     }
     else
     {
         std::cout << "DiscoveryServer Participant " << participant_->guid().guidPrefix
-            << " running for  " << time << " seconds." << std::endl;
+            << " running in address " << address_ << " port " << tcp_port_
+            << " for " << time << " seconds." << std::endl;
+        std::this_thread::sleep_for(std::chrono::seconds(time));
     }
 }
