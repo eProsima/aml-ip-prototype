@@ -34,6 +34,8 @@
 
 #include <atomic>
 
+#define SERVER_GUID_PREFIX "01.0f.2d.41.4c.47.45.42.52.41.49.43"
+
 class EngineWriterListener;
 class DLReaderListener;
 class AtomizationReaderListener;

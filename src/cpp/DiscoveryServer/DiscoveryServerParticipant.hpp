@@ -32,6 +32,8 @@
 
 #include <atomic>
 
+#define SERVER_GUID_PREFIX "01.0f.2d.41.4c.47.45.42.52.41.49.43"
+
 class DiscoveryServerListener;
 
 class DiscoveryServerParticipant
@@ -58,7 +60,7 @@ protected:
 
 private:
 
-    eprosima::fastrtps::Participant* participant_;
+    eprosima::fastdds::dds::DomainParticipant* participant_;
 };
 
 // TODO check if DS allows to implement with a Listener

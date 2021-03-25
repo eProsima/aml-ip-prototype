@@ -21,7 +21,6 @@
 #include "../types/DLOutput/DLOutputPubSubTypes.h"
 #include "../types/utils/utils.hpp"
 
-#include <fastrtps/attributes/ParticipantAttributes.h>
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
 #include <fastdds/dds/domain/qos/DomainParticipantQos.hpp>
 #include <fastdds/dds/publisher/qos/PublisherQos.hpp>
@@ -31,11 +30,10 @@
 #include <fastdds/rtps/transport/TCPv4TransportDescriptor.h>
 #include <fastdds/rtps/transport/UDPv4TransportDescriptor.h>
 #include <fastrtps/utils/IPLocator.h>
-#include <fastrtps/Domain.h>
-#include <fastrtps/participant/Participant.h>
 
 #include <stdlib.h>
 #include <atomic>
+#include <sstream>
 
 using namespace eprosima::fastdds::dds;
 using namespace eprosima::fastdds::rtps;
@@ -59,19 +57,21 @@ bool DiscoveryServerParticipant::init(
     //CREATE THE PARTICIPANT
     DomainParticipantQos pqos = DomainParticipantFactory::get_instance()->get_default_participant_qos();
 
-    // TODO set Discovery Server from DDS qos
-    static_cast<void> (pqos);
+    pqos.wire_protocol().builtin.discovery_config.leaseDuration = eprosima::fastrtps::c_TimeInfinite;
+    pqos.wire_protocol().builtin.discovery_config.leaseDuration_announcementperiod =
+            eprosima::fastrtps::Duration_t(2, 0);
+    pqos.name("AML IP Discovery Server");
 
-    ParticipantAttributes PParam;
-    PParam.rtps.builtin.discovery_config.discoveryProtocol = DiscoveryProtocol_t::SERVER;
-    PParam.rtps.ReadguidPrefix("01.0f.2d.41.4c.47.45.42.52.41.49.43");
-    PParam.rtps.builtin.discovery_config.leaseDuration = c_TimeInfinite;
-    PParam.rtps.setName("AML IP Discovery Server");
+    // Set as a server
+    pqos.wire_protocol().builtin.discovery_config.discoveryProtocol = DiscoveryProtocol::SERVER;
 
-    // TCP Manual configuration
-    // TCP client configuration
+    // Set guid manually
+    std::istringstream(SERVER_GUID_PREFIX) >> pqos.wire_protocol().prefix;
+
+    // TCP configuration
     if (tcp_port != -1)
     {
+        // Create TCPv4 transport
         std::shared_ptr<TCPv4TransportDescriptor> descriptor = std::make_shared<TCPv4TransportDescriptor>();
 
         //descriptor->wait_for_tcp_negotiation = false;
@@ -79,20 +79,33 @@ bool DiscoveryServerParticipant::init(
         descriptor->add_listener_port(tcp_port);
         descriptor->set_WAN_address(address);
 
-        PParam.rtps.userTransports.push_back(descriptor);
+        descriptor->sendBufferSize = 0;
+        descriptor->receiveBufferSize = 0;
+
+        pqos.transport().user_transports.push_back(descriptor);
+
+        // Create Locator
+        Locator_t tcp_locator(LOCATOR_KIND_TCPv4);
+
+        IPLocator::setIPv4(tcp_locator, address);
+        IPLocator::setLogicalPort(tcp_locator, tcp_port);
+        IPLocator::setPhysicalPort(tcp_locator, tcp_port);
+
+        pqos.wire_protocol().builtin.metatrafficUnicastLocatorList.push_back(tcp_locator);
     }
 
-    // TCP server configuration
+    // UDP configuration
     if (udp_port != -1)
     {
+        // There is no need to create descriptor as UDPv4 is already created
         Locator_t udp_locator(LOCATOR_KIND_UDPv4);
         udp_locator.port = udp_port;
         IPLocator::setIPv4(udp_locator, address);
 
-        PParam.rtps.builtin.metatrafficUnicastLocatorList.push_back(udp_locator);
+        pqos.wire_protocol().builtin.metatrafficUnicastLocatorList.push_back(udp_port);
     }
 
-    participant_ = Domain::createParticipant(PParam);
+    participant_ = DomainParticipantFactory::get_instance()->create_participant(0, pqos);
 
     if (participant_ == nullptr)
     {
@@ -104,7 +117,7 @@ bool DiscoveryServerParticipant::init(
 
 DiscoveryServerParticipant::~DiscoveryServerParticipant()
 {
-    Domain::removeParticipant(participant_);
+    DomainParticipantFactory::get_instance()->delete_participant(participant_);
 }
 
 void DiscoveryServerParticipant::run(
@@ -112,13 +125,13 @@ void DiscoveryServerParticipant::run(
 {
     if (time == 0)
     {
-        std::cout << "DiscoveryServer Participant " << participant_->getGuid().guidPrefix
+        std::cout << "DiscoveryServer Participant " << participant_->guid().guidPrefix
             << " running. Please press enter to stop it at any time." << std::endl;
         std::cin.ignore();
     }
     else
     {
-        std::cout << "DiscoveryServer Participant " << participant_->getGuid().guidPrefix
+        std::cout << "DiscoveryServer Participant " << participant_->guid().guidPrefix
             << " running for  " << time << " seconds." << std::endl;
     }
 }

@@ -35,6 +35,8 @@
 
 using namespace eprosima::fastdds::dds;
 using namespace eprosima::fastdds::rtps;
+using namespace eprosima::fastrtps;
+using namespace eprosima::fastrtps::rtps;
 
 DLParticipant::DLParticipant()
     : participant_(nullptr)
@@ -66,33 +68,17 @@ bool DLParticipant::init(
             eprosima::fastrtps::Duration_t(2, 0);
     pqos.name("DL Participant");
 
-    // TCP Manual configuration
-    // TCP client configuration
-    if (connection_port != -1)
-    {
-        pqos.transport().use_builtin_transports = false;
+    // Set as a client
+    pqos.wire_protocol().builtin.discovery_config.discoveryProtocol = DiscoveryProtocol::CLIENT;
 
-        std::shared_ptr<TCPv4TransportDescriptor> descriptor = std::make_shared<TCPv4TransportDescriptor>();
-
-        descriptor->sendBufferSize = 0;
-        descriptor->receiveBufferSize = 0;
-
-        Locator initial_peer_locator;
-        initial_peer_locator.kind = LOCATOR_KIND_TCPv4;
-
-        eprosima::fastrtps::rtps::IPLocator::setIPv4(initial_peer_locator, connection_address);
-        initial_peer_locator.port = connection_port;
-        pqos.wire_protocol().builtin.initialPeersList.push_back(initial_peer_locator); // Publisher's meta channel
-
-        pqos.transport().user_transports.push_back(descriptor);
-    }
+    // Set Server guid manually
+    RemoteServerAttributes server;
+    server.ReadguidPrefix(SERVER_GUID_PREFIX);
+    pqos.wire_protocol().builtin.discovery_config.m_DiscoveryServers.push_back(server);
 
     // TCP server configuration
     if (listening_port != -1)
     {
-        // No problem repeating this operation
-        pqos.transport().use_builtin_transports = false;
-
         std::shared_ptr<TCPv4TransportDescriptor> descriptor = std::make_shared<TCPv4TransportDescriptor>();
 
         descriptor->sendBufferSize = 0;
@@ -102,6 +88,24 @@ bool DLParticipant::init(
         descriptor->set_WAN_address(listening_address);
         pqos.transport().user_transports.push_back(descriptor);
     }
+    else
+    {
+        // TCP client configuration
+        std::shared_ptr<TCPv4TransportDescriptor> descriptor = std::make_shared<TCPv4TransportDescriptor>();
+
+        descriptor->sendBufferSize = 0;
+        descriptor->receiveBufferSize = 0;
+
+        pqos.transport().user_transports.push_back(descriptor);
+    }
+
+    // Discovery server locator configuration
+    Locator_t locator;
+    locator.kind = LOCATOR_KIND_UDPv4;
+    IPLocator::setIPv4(locator, connection_address);
+    IPLocator::setLogicalPort(locator, connection_port);
+    IPLocator::setPhysicalPort(locator, connection_port);
+    pqos.wire_protocol().builtin.metatrafficUnicastLocatorList.push_back(locator);
 
     participant_ = DomainParticipantFactory::get_instance()->create_participant(domain, pqos);
 

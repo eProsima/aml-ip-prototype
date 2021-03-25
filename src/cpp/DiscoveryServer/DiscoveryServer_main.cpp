@@ -20,7 +20,6 @@
 #include "DiscoveryServerParticipant.hpp"
 
 #include <string>
-#include <stdlib.h>
 
 #include "../utils/optionparser.h"
 
@@ -223,8 +222,13 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    // Initialize random seed
-    srand(tcp_port * udp_port);
+    // Public Address must be specified
+    if (address == "")
+    {
+        std::cout << "CLI error: Public IP address must be specified" << std::endl;
+        option::printUsage(fwrite, stdout, usage, columns);
+        return 1;
+    }
 
     // Create Participant object and run thread of publishing in loop
     DiscoveryServerParticipant part;

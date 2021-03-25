@@ -122,7 +122,10 @@ enum  optionIndex {
  */
 const option::Descriptor usage[] = {
     { UNKNOWN_OPT, 0,"", "",                Arg::None,
-        "Usage: AML IP Engine \n\nGeneral options:" },
+        "Usage: AML IP Engine \n" \
+        "Connecting port and address must specify where the Discovery Server is listening.\n" \
+        "Listening port and address are not required, but without them this client could only work as a TCP client.\n" \
+        "General options:" },
     { HELP,    0,"h", "help",               Arg::None,      "  -h \t--help  \tProduce help message." },
     { PERIOD, 0, "p", "period",             Arg::Float,
         "  -p <float> \t--period=<float> \tPeriod to send new random data (Default: 2)." },
@@ -135,13 +138,13 @@ const option::Descriptor usage[] = {
         "  -l <num> \t--size=<num> \tMax number of relations in data to send(Default: 5)." \
         " This value also works as seed for randome generation."},
     { CONNECTION_PORT, 0, "", "connection-port",             Arg::Numeric,
-        "  --connection-port=<num> \tPort where the TCP server is listening (Default: -1)."},
+        "  --connection-port=<num> \tPort where the TCP server is listening (Default: 5100)."},
     { CONNECTION_ADDRESS, 0, "", "connection-address",             Arg::String,
         "  --connection-address=<address> \tIP address where the TCP server is listening (Default: '')."},
     { LISTENING_PORT, 0, "", "listening-port",             Arg::Numeric,
-        "  --listening-port=<num> \tPort to listen as TCP server (Default: 5100)."},
+        "  --listening-port=<num> \tPort to listen as TCP server (Default: -1)."},
     { LISTENING_ADDRESS, 0, "", "listening-address",             Arg::String,
-        "  --listening-address=<address> \tIP address to listen as TCP server (Default: '127.0.0.1')."},
+        "  --listening-address=<address> \tIP address to listen as TCP server (Default: '')."},
     { 0, 0, 0, 0, 0, 0 }
 };
 
@@ -170,10 +173,10 @@ int main(int argc, char** argv)
     int samples = 10;
     int domain = 11;
     uint32_t data_size = 5;
-    int connection_port = -1;
+    int connection_port = 5100;
     std::string connection_address("");
-    int listening_port = 5100;
-    std::string listening_address("127.0.0.1");
+    int listening_port = -1;
+    std::string listening_address("");
 
     // No required arguments
     if (argc > 0)
@@ -249,6 +252,14 @@ int main(int argc, char** argv)
     }
     else
     {
+        option::printUsage(fwrite, stdout, usage, columns);
+        return 1;
+    }
+
+    // Public Address must be specified
+    if (connection_address == "")
+    {
+        std::cout << "CLI error: Discovery Server IP address must be specified" << std::endl;
         option::printUsage(fwrite, stdout, usage, columns);
         return 1;
     }
