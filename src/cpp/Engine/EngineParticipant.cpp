@@ -32,6 +32,7 @@
 #include <fastrtps/rtps/common/InstanceHandle.h>
 #include <fastrtps/xmlparser/XMLProfileManager.h>
 #include <fastdds/rtps/transport/TCPv4TransportDescriptor.h>
+#include <fastdds/rtps/transport/UDPv4TransportDescriptor.h>
 #include <fastrtps/utils/IPLocator.h>
 
 #include <atomic>
@@ -83,9 +84,8 @@ bool EngineParticipant::init(
     pqos.wire_protocol().builtin.discovery_config.discoveryProtocol = DiscoveryProtocol::CLIENT;
 
     // Set Server guid manually
-    RemoteServerAttributes server;
-    server.ReadguidPrefix(SERVER_GUID_PREFIX);
-    pqos.wire_protocol().builtin.discovery_config.m_DiscoveryServers.push_back(server);
+    RemoteServerAttributes server_attr;
+    server_attr.ReadguidPrefix(SERVER_GUID_PREFIX);
 
     // TCP server configuration
     if (listening_port != -1)
@@ -110,19 +110,34 @@ bool EngineParticipant::init(
         pqos.transport().user_transports.push_back(descriptor);
     }
 
+    // { not needed UDPv4 descriptor
+    //     std::cout << "UDP descriptor" << std::endl;
+
+    //     // UDP client configuration
+    //     std::shared_ptr<UDPv4TransportDescriptor> descriptor = std::make_shared<UDPv4TransportDescriptor>();
+
+    //     descriptor->sendBufferSize = 0;
+    //     descriptor->receiveBufferSize = 0;
+
+    //     pqos.transport().user_transports.push_back(descriptor);
+    // }
+
+    // Discovery server locator configuration UDP
+    Locator_t udp_locator;
+    udp_locator.kind = LOCATOR_KIND_UDPv4;
+    udp_locator.port = connection_port;
+    IPLocator::setIPv4(udp_locator, connection_address);
+    server_attr.metatrafficUnicastLocatorList.push_back(udp_locator);
+
     // Discovery server locator configuration TCP
     Locator_t tcp_locator;
     tcp_locator.kind = LOCATOR_KIND_TCPv4;
     IPLocator::setIPv4(tcp_locator, connection_address);
     IPLocator::setLogicalPort(tcp_locator, connection_port);
     IPLocator::setPhysicalPort(tcp_locator, connection_port);
-    pqos.wire_protocol().builtin.metatrafficUnicastLocatorList.push_back(tcp_locator);
+    server_attr.metatrafficUnicastLocatorList.push_back(tcp_locator);
 
-    // Discovery server locator configuration UDP
-    Locator_t udp_locator;
-    udp_locator.kind = LOCATOR_KIND_UDPv4;
-    udp_locator.port = connection_port;
-    pqos.wire_protocol().builtin.metatrafficUnicastLocatorList.push_back(udp_locator);
+    pqos.wire_protocol().builtin.discovery_config.m_DiscoveryServers.push_back(server_attr);
 
     participant_ = DomainParticipantFactory::get_instance()->create_participant(domain, pqos);
 

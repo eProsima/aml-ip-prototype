@@ -99,7 +99,8 @@ bool DiscoveryServerParticipant::init(
         pqos.transport().user_transports.push_back(descriptor);
 
         // Create Locator
-        Locator_t tcp_locator(LOCATOR_KIND_TCPv4);
+        Locator_t tcp_locator;
+        tcp_locator.kind = LOCATOR_KIND_TCPv4;
 
         IPLocator::setIPv4(tcp_locator, address);
         IPLocator::setWan(tcp_locator, address);
@@ -112,12 +113,21 @@ bool DiscoveryServerParticipant::init(
     // UDP configuration
     if (udp_port != -1)
     {
-        // There is no need to create descriptor as UDPv4 is already created
-        Locator_t udp_locator(LOCATOR_KIND_UDPv4);
+        // Create UDPv4 transport ! not needed
+        // std::shared_ptr<UDPv4TransportDescriptor> descriptor = std::make_shared<UDPv4TransportDescriptor>();
+
+        // descriptor->sendBufferSize = 0;
+        // descriptor->receiveBufferSize = 0;
+
+        // pqos.transport().user_transports.push_back(descriptor);
+
+        // Create locator
+        Locator_t udp_locator;
+        udp_locator.kind = LOCATOR_KIND_UDPv4;
         udp_locator.port = udp_port;
         IPLocator::setIPv4(udp_locator, address);
 
-        pqos.wire_protocol().builtin.metatrafficUnicastLocatorList.push_back(udp_port);
+        pqos.wire_protocol().builtin.metatrafficUnicastLocatorList.push_back(udp_locator);
     }
 
     participant_ = DomainParticipantFactory::get_instance()->create_participant(0, pqos);

@@ -16,6 +16,7 @@ router LAN : 192.168.42.x
 admin : eProsima
 psw   : Micro-ROS
 wifi psw   : Micro-ROS
+port forwarding : 5200 -> 192.168.42.175
 
 ROUTER ANNAPURNA
 router IP  : 192.168.1.132
@@ -23,6 +24,7 @@ router LAN : 192.168.2.x
 admin : eProsima
 psw   : Micro-ROS
 wifi psw   : Micro-ROS
+port forwarding : 5300 -> 192.168.2.50
 
 ROUTER FARM
 router IP  : 192.168.1.20
@@ -30,6 +32,7 @@ router LAN : 192.168.20.x
 admin : admin
 psw   : eProsima2019
 wifi psw   : Micro-ROS
+DHCP  : RASPBERRY FARM
 
 RASPBERRY ELBRUS
 IP    : 192.168.42.175
@@ -62,11 +65,11 @@ source install/setup.bash
 
 # pi@annapurna-raspi:~/Workspace/amlip $
 source install/setup.bash
-./install/discovery-server/examples/C++/HelloWorldExampleDS/HelloWorldExampleDS publisher --tcp --ip=192.168.20.15:5250 --wan=192.168.1.132 -c 100
+./install/AML_IP_Prototype/bin/AML_IP_Engine --connection-port=5100 --connection-address="192.168.20.15" --listening-port=5300 --listening-address="192.168.1.132"
 
 # pi@elbrus-raspi:~/Workspace/amlip $
 source install/setup.bash
-./install/discovery-server/examples/C++/HelloWorldExampleDS/HelloWorldExampleDS subscriber --tcp --ip=192.168.20.15:5250 --wan=192.168.1.131
+./install/AML_IP_Prototype/bin/AML_IP_Dl --connection-port=5100 --connection-address="192.168.20.15" --listening-port=5200 --listening-address="192.168.1.131"
 ```
 
 ## Results
@@ -101,4 +104,20 @@ cd Workspace/amlip/
 rm -rf install/
 scp -r pi@192.168.20.15:/home/pi/amlip/install .
 raspberry
+```
+
+### Experiment with DS
+
+```sh
+# pi@raspfarm05:~/amlip $
+source install/setup.bash
+./install/discovery-server/examples/C++/HelloWorldExampleDS/HelloWorldExampleDS server --tcp --ip=192.168.20.15:5250 --wan=192.168.20.15
+
+# pi@annapurna-raspi:~/Workspace/amlip $
+source install/setup.bash
+./install/discovery-server/examples/C++/HelloWorldExampleDS/HelloWorldExampleDS publisher --tcp --ip=192.168.20.15:5250 --wan=192.168.1.132 -c 100
+
+# pi@elbrus-raspi:~/Workspace/amlip $
+source install/setup.bash
+./install/discovery-server/examples/C++/HelloWorldExampleDS/HelloWorldExampleDS subscriber --tcp --ip=192.168.20.15:5250 --wan=192.168.1.131
 ```
