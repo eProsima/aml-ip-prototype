@@ -111,7 +111,8 @@ enum  optionIndex {
     TCP_PORT,
     UDP_PORT,
     ADDRESS,
-    TIME
+    TIME,
+    BACKUP
 };
 
 /*
@@ -128,9 +129,11 @@ const option::Descriptor usage[] = {
     { UDP_PORT, 0, "u", "udp-port",             Arg::Numeric,
         "-u <num>\t  --udp-port=<num> \tPort to listen in UDP (Default 11811)."},
     { ADDRESS, 0, "a", "address",             Arg::String,
-        "-a <address>\t  --address=<address> \t Public IP address to connect from outside the LAN (Default "")."},
+        "-a <address>\t  --address=<address> \t Public IP address to connect from outside the LAN [Required]."},
     { TIME, 0, "", "time",             Arg::Numeric,
         "--time \tTime in seconds until the server closes, if 0 wait for user input (Default 0)."},
+    { BACKUP, 0, "b", "tbackupme",             Arg::None,
+        "-b \t--backup \tSet Discovery Server as Backup. Use only for debug purpose and erase old db before execute."},
     { 0, 0, 0, 0, 0, 0 }
 };
 
@@ -156,9 +159,10 @@ int main(int argc, char** argv)
 
     // Get executable arguments
     int tcp_port = 5100;
-    int udp_port = -1;
+    int udp_port = 11811;
     uint32_t time = 0;
     std::string address("");
+    bool backup = false;
 
     // No required arguments
     if (argc > 0)
@@ -209,6 +213,10 @@ int main(int argc, char** argv)
                     time = std::strtol(opt.arg, nullptr, 10);
                     break;
 
+                case BACKUP:
+                    backup = true;
+                    break;
+
                 case UNKNOWN_OPT:
                     option::printUsage(fwrite, stdout, usage, columns);
                     return 1;
@@ -232,7 +240,7 @@ int main(int argc, char** argv)
 
     // Create Participant object and run thread of publishing in loop
     DiscoveryServerParticipant part;
-    if (part.init(tcp_port, udp_port, address))
+    if (part.init(tcp_port, udp_port, address, backup))
     {
         part.run(time);
     }

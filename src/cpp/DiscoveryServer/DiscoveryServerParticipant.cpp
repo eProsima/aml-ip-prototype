@@ -50,7 +50,8 @@ DiscoveryServerParticipant::DiscoveryServerParticipant()
 bool DiscoveryServerParticipant::init(
         int tcp_port,
         int udp_port,
-        std::string address)
+        std::string address,
+        bool backup)
 {
     // Set internal variables for print propouse
     tcp_port_ = tcp_port;
@@ -69,7 +70,14 @@ bool DiscoveryServerParticipant::init(
     pqos.name("AML IP Discovery Server");
 
     // Set as a server
-    pqos.wire_protocol().builtin.discovery_config.discoveryProtocol = DiscoveryProtocol::SERVER;
+    if (backup)
+    {
+        pqos.wire_protocol().builtin.discovery_config.discoveryProtocol = DiscoveryProtocol::BACKUP;
+    }
+    else
+    {
+        pqos.wire_protocol().builtin.discovery_config.discoveryProtocol = DiscoveryProtocol::SERVER;
+    }
 
     // Set guid manually
     std::istringstream(SERVER_GUID_PREFIX) >> pqos.wire_protocol().prefix;
@@ -94,6 +102,7 @@ bool DiscoveryServerParticipant::init(
         Locator_t tcp_locator(LOCATOR_KIND_TCPv4);
 
         IPLocator::setIPv4(tcp_locator, address);
+        IPLocator::setWan(tcp_locator, address);
         IPLocator::setLogicalPort(tcp_locator, tcp_port);
         IPLocator::setPhysicalPort(tcp_locator, tcp_port);
 

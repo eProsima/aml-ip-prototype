@@ -99,13 +99,19 @@ bool DLParticipant::init(
         pqos.transport().user_transports.push_back(descriptor);
     }
 
-    // Discovery server locator configuration
-    Locator_t locator;
-    locator.kind = LOCATOR_KIND_UDPv4;
-    IPLocator::setIPv4(locator, connection_address);
-    IPLocator::setLogicalPort(locator, connection_port);
-    IPLocator::setPhysicalPort(locator, connection_port);
-    pqos.wire_protocol().builtin.metatrafficUnicastLocatorList.push_back(locator);
+    // Discovery server locator configuration UDP
+    Locator_t udp_locator;
+    udp_locator.kind = LOCATOR_KIND_UDPv4;
+    udp_locator.port = connection_port;
+    pqos.wire_protocol().builtin.metatrafficUnicastLocatorList.push_back(udp_locator);
+
+    // Discovery server locator configuration TCP
+    Locator_t tcp_locator;
+    tcp_locator.kind = LOCATOR_KIND_TCPv4;
+    IPLocator::setIPv4(tcp_locator, connection_address);
+    IPLocator::setLogicalPort(tcp_locator, connection_port);
+    IPLocator::setPhysicalPort(tcp_locator, connection_port);
+    pqos.wire_protocol().builtin.metatrafficUnicastLocatorList.push_back(tcp_locator);
 
     participant_ = DomainParticipantFactory::get_instance()->create_participant(domain, pqos);
 

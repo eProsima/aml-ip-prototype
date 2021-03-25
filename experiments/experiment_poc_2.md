@@ -84,7 +84,7 @@ cd amlip/
 # these commands may need github user and password
 vcs import src < amlip.repos
 vcs pull
-colcon build --cmake-clean-cache --cmake-args -DCOMPILE_EXAMPLES
+colcon build --cmake-clean-cache --cmake-args -DCOMPILE_EXAMPLES=ON
 
 # enter raspi annapurna and copy compilation
 ssh pi@192.168.1.132 -p 10300

@@ -49,7 +49,8 @@ public:
     bool init(
         int tcp_port,
         int udp_port,
-        std::string address);
+        std::string address,
+        bool backup);
 
     //!Run for number samples
     void run(uint32_t time);
