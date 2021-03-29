@@ -20,8 +20,8 @@
 #ifndef TYPES_UTILS_HPP
 #define TYPES_UTILS_HPP
 
-#include "../DLOutput/DLOutput.h"
-#include "../Atomization/Atomization.h"
+#include "../types/DLOutput/DLOutput.h"
+#include "../types/Atomization/Atomization.h"
 
 AML_IP_Atomization generate_random_atomization_data(uint32_t data_size);
 

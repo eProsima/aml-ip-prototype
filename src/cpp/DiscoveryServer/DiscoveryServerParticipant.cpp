@@ -19,7 +19,7 @@
 
 #include "DiscoveryServerParticipant.hpp"
 #include "../types/DLOutput/DLOutputPubSubTypes.h"
-#include "../types/utils/utils.hpp"
+#include "../utils/utils.hpp"
 
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
 #include <fastdds/dds/domain/qos/DomainParticipantQos.hpp>

@@ -66,7 +66,7 @@ set(TYPES_SOURCES_CXX
     src/cpp/types/Atomization/AtomizationPubSubTypes.cxx
     src/cpp/types/DLOutput/DLOutput.cxx
     src/cpp/types/DLOutput/DLOutputPubSubTypes.cxx
-    src/cpp/types/utils/utils.cpp)
+    src/cpp/utils/utils.cpp)
 
 # AML-DL executable
 message(STATUS "Configuring AML_IP_DL executable...")

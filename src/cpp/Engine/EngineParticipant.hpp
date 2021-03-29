@@ -64,6 +64,7 @@ public:
 
 protected:
 
+    // AML_INTEGRATION
     void runThread(
             int number,
             long sleep_ms,

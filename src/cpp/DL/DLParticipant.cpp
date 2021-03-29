@@ -19,7 +19,7 @@
 
 #include "DLParticipant.hpp"
 #include "../types/DLOutput/DLOutputPubSubTypes.h"
-#include "../types/utils/utils.hpp"
+#include "../utils/utils.hpp"
 
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
 #include <fastdds/dds/domain/qos/DomainParticipantQos.hpp>
@@ -197,10 +197,12 @@ void DLParticipant::runThread(
         long sleep_ms,
         uint32_t data_size)
 {
+    // AML_INTEGRATION
     int index = 0;
     while (!stop_.load() && (index < samples || samples == 0))
     {
         // It sleeps to simulate DL execution
+        // AML_INTEGRATION change for a condition variable that activates with new data to send
         std::this_thread::sleep_for(std::chrono::milliseconds(sleep_ms));
 
         // In case stop has been pressed between sleep
@@ -209,7 +211,8 @@ void DLParticipant::runThread(
             break;
         }
 
-        // Generate randome data
+        // Generate random data
+        // AML_INTEGRATION change with the data that must be sent
         AML_IP_DLOutput data = generate_random_dloutput_data(data_size);
 
         if (!publish(data))

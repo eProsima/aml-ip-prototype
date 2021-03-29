@@ -20,7 +20,7 @@
 #include "EngineParticipant.hpp"
 #include "../types/DLOutput/DLOutputPubSubTypes.h"
 #include "../types/Atomization/AtomizationPubSubTypes.h"
-#include "../types/utils/utils.hpp"
+#include "../utils/utils.hpp"
 
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
 #include <fastdds/dds/domain/qos/DomainParticipantQos.hpp>
@@ -287,10 +287,12 @@ void EngineParticipant::runThread(
         long sleep_ms,
         uint32_t data_size)
 {
+    // AML_INTEGRATION
     int index = 0;
     while (!stop_.load() && (index < samples || samples == 0))
     {
         // It sleeps to simulate Engine execution
+        // AML_INTEGRATION change for a condition variable that activates with new data to send
         std::this_thread::sleep_for(std::chrono::milliseconds(sleep_ms));
 
         // In case stop has been pressed between sleep
@@ -300,6 +302,7 @@ void EngineParticipant::runThread(
         }
 
         // Generates data to send
+        // AML_INTEGRATION change with the data that must be sent
         AML_IP_Atomization data = generate_random_atomization_data(data_size);
 
         if (!publish(data))
@@ -399,6 +402,7 @@ void DLReaderListener::on_subscription_matched(
 void DLReaderListener::on_data_available(
         DataReader* reader)
 {
+    // AML_INTEGRATION
     // TODO do not read it if it comes from us
     SampleInfo info;
     AML_IP_DLOutput data;
@@ -448,6 +452,7 @@ void AtomizationReaderListener::on_subscription_matched(
 void AtomizationReaderListener::on_data_available(
         DataReader* reader)
 {
+    // AML_INTEGRATION
     // TODO do not read it if it comes from us
     SampleInfo info;
     AML_IP_Atomization data;
