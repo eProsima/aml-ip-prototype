@@ -80,7 +80,7 @@ bool DiscoveryServerParticipant::init(
     }
 
     // Set guid manually
-    std::istringstream(SERVER_GUID_PREFIX) >> pqos.wire_protocol().prefix;
+    std::istringstream(SERVER_DEFAULT_GUID) >> pqos.wire_protocol().prefix;
 
     // TCP configuration
     if (tcp_port != -1)
@@ -130,7 +130,7 @@ bool DiscoveryServerParticipant::init(
         pqos.wire_protocol().builtin.metatrafficUnicastLocatorList.push_back(udp_locator);
     }
 
-    participant_ = DomainParticipantFactory::get_instance()->create_participant(0, pqos);
+    participant_ = DomainParticipantFactory::get_instance()->create_participant(DEFAULT_DOMAIN, pqos);
 
     if (participant_ == nullptr)
     {

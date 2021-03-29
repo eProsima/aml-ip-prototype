@@ -21,6 +21,7 @@
 #define DiscoveryServerPARTICIPANT_HPP
 
 #include "../types/DLOutput/DLOutput.h"
+#include "../types/types.hpp"
 
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 #include <fastdds/dds/publisher/Publisher.hpp>
@@ -31,8 +32,6 @@
 #include <fastrtps/participant/Participant.h>
 
 #include <atomic>
-
-#define SERVER_GUID_PREFIX "01.0f.2d.41.4c.47.45.42.52.41.49.43"
 
 class DiscoveryServerListener;
 

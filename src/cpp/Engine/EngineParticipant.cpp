@@ -85,7 +85,7 @@ bool EngineParticipant::init(
 
     // Set Server guid manually
     RemoteServerAttributes server_attr;
-    server_attr.ReadguidPrefix(SERVER_GUID_PREFIX);
+    server_attr.ReadguidPrefix(SERVER_DEFAULT_GUID);
 
     // TCP server configuration
     if (listening_port != -1)
@@ -407,9 +407,9 @@ void DLReaderListener::on_data_available(
         if (info.valid_data)
         {
             std::cout << ">> Engine Participant " << reader->guid().guidPrefix
-                << " receive DL message " << data << " number: " << ++samples_ << " from: "
-                << info.sample_identity.writer_guid().guidPrefix << std::endl;
-        }
+                << " receive DL message " << data << " from: "
+                << info.sample_identity.writer_guid().guidPrefix << std::endl
+                << ". Number of messages received so far: " << ++samples_ ;        }
     }
 }
 
@@ -457,8 +457,9 @@ void AtomizationReaderListener::on_data_available(
         if (info.sample_identity.writer_guid().guidPrefix != reader->guid().guidPrefix && info.valid_data)
         {
             std::cout << ">> Engine Participant " << reader->guid().guidPrefix
-                << " receive Atomization message " << data << " number: " << ++samples_ << " from: "
-                << info.sample_identity.writer_guid().guidPrefix << std::endl;
+                << " receive Atomization message " << data << " from: "
+                << info.sample_identity.writer_guid().guidPrefix << std::endl
+                << ". Number of messages received so far: " << ++samples_ ;
         }
     }
 }

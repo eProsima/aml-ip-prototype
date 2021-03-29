@@ -74,7 +74,7 @@ bool DLParticipant::init(
 
     // Set Server guid manually
     RemoteServerAttributes server_attr;
-    server_attr.ReadguidPrefix(SERVER_GUID_PREFIX);
+    server_attr.ReadguidPrefix(SERVER_DEFAULT_GUID);
 
     // TCP server configuration
     if (listening_port != -1)

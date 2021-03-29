@@ -21,7 +21,9 @@
 
 #include <string>
 
-#include "../utils/optionparser.h"
+#include "../thirdparty/optionparser.h"
+#include "../types/types.hpp"
+
 
 /*
  * Struct to parse the executable arguments
@@ -171,7 +173,7 @@ int main(int argc, char** argv)
     // Get executable arguments
     float period = 2;
     int samples = 10;
-    int domain = 11;
+    int domain = DEFAULT_DOMAIN;
     uint32_t data_size = 5;
     int connection_port = 5100;
     std::string connection_address("");
