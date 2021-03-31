@@ -44,6 +44,7 @@ DiscoveryServerParticipant::DiscoveryServerParticipant()
     : participant_(nullptr)
     , address_("")
     , tcp_port_(0)
+    , listener_(nullptr)
 {
 }
 
@@ -130,7 +131,9 @@ bool DiscoveryServerParticipant::init(
         pqos.wire_protocol().builtin.metatrafficUnicastLocatorList.push_back(udp_locator);
     }
 
-    participant_ = DomainParticipantFactory::get_instance()->create_participant(DEFAULT_DOMAIN, pqos);
+    listener_ = new DiscoveryServerListener();
+
+    participant_ = DomainParticipantFactory::get_instance()->create_participant(DEFAULT_DOMAIN, pqos, listener_);
 
     if (participant_ == nullptr)
     {
@@ -142,6 +145,11 @@ bool DiscoveryServerParticipant::init(
 
 DiscoveryServerParticipant::~DiscoveryServerParticipant()
 {
+    if (listener_)
+    {
+        delete listener_;
+    }
+
     DomainParticipantFactory::get_instance()->delete_participant(participant_);
 }
 
@@ -161,5 +169,58 @@ void DiscoveryServerParticipant::run(
             << " running in address " << address_ << " port " << tcp_port_
             << " for " << time << " seconds." << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(time));
+    }
+}
+
+void DiscoveryServerListener::on_participant_discovery(
+        eprosima::fastdds::dds::DomainParticipant* participant,
+        eprosima::fastrtps::rtps::ParticipantDiscoveryInfo&& info)
+{
+    if (info.status == ParticipantDiscoveryInfo::DISCOVERED_PARTICIPANT)
+    {
+        std::cout << "DiscoveryServer Participant " << participant->guid().guidPrefix
+            << " discovered participant " << info.info.m_guid.guidPrefix << std::endl;
+    }
+    else if (info.status == ParticipantDiscoveryInfo::DROPPED_PARTICIPANT)
+    {
+        std::cout << "DiscoveryServer Participant " << participant->guid().guidPrefix
+            << " dropped participant " << info.info.m_guid.guidPrefix << std::endl;
+    }
+    else if (info.status == ParticipantDiscoveryInfo::REMOVED_PARTICIPANT)
+    {
+        std::cout << "DiscoveryServer Participant " << participant->guid().guidPrefix
+            << " removed participant " << info.info.m_guid.guidPrefix << std::endl;
+    }
+}
+
+void DiscoveryServerListener::on_subscriber_discovery(
+        eprosima::fastdds::dds::DomainParticipant* participant,
+        eprosima::fastrtps::rtps::ReaderDiscoveryInfo&& info)
+{
+    if (info.status == ReaderDiscoveryInfo::DISCOVERED_READER)
+    {
+        std::cout << "DiscoveryServer Participant " << participant->guid().guidPrefix
+            << " discovered subscriber " << info.info.guid().guidPrefix << std::endl;
+    }
+    else if (info.status == ReaderDiscoveryInfo::REMOVED_READER)
+    {
+        std::cout << "DiscoveryServer Participant " << participant->guid().guidPrefix
+            << " remove subscriber " << info.info.guid().guidPrefix << std::endl;
+    }
+}
+
+void DiscoveryServerListener::on_publisher_discovery(
+        eprosima::fastdds::dds::DomainParticipant* participant,
+        eprosima::fastrtps::rtps::WriterDiscoveryInfo&& info)
+{
+    if (info.status == WriterDiscoveryInfo::DISCOVERED_WRITER)
+    {
+        std::cout << "DiscoveryServer Participant " << participant->guid().guidPrefix
+            << " discovered publisher " << info.info.guid().guidPrefix << std::endl;
+    }
+    else if (info.status == WriterDiscoveryInfo::REMOVED_WRITER)
+    {
+        std::cout << "DiscoveryServer Participant " << participant->guid().guidPrefix
+            << " removed publisher " << info.info.guid().guidPrefix << std::endl;
     }
 }

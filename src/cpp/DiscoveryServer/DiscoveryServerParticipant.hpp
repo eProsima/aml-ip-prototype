@@ -24,10 +24,12 @@
 #include "../types/types.hpp"
 
 #include <fastdds/dds/domain/DomainParticipant.hpp>
+#include <fastdds/dds/domain/DomainParticipantListener.hpp>
 #include <fastdds/dds/publisher/Publisher.hpp>
 #include <fastdds/dds/topic/Topic.hpp>
 #include <fastdds/dds/publisher/DataWriter.hpp>
 #include <fastdds/dds/publisher/DataWriterListener.hpp>
+#include <fastdds/rtps/participant/ParticipantDiscoveryInfo.h>
 
 #include <fastrtps/participant/Participant.h>
 
@@ -64,26 +66,34 @@ private:
 
     std::string address_;
 
+    DiscoveryServerListener* listener_;
+
     int tcp_port_;
 };
 
-// TODO check if DS allows to implement with a Listener
-// class DiscoveryServerListener : public eprosima::fastdds::dds::DomainParticipantListener
-// {
-// public:
+class DiscoveryServerListener : public eprosima::fastdds::dds::DomainParticipantListener
+{
+public:
 
-//     DiscoveryServerListener()
-//     {
-//     }
+    DiscoveryServerListener()
+    {
+    }
 
-//     ~DiscoveryServerListener() override
-//     {
-//     }
+    ~DiscoveryServerListener() override
+    {
+    }
 
-//     void on_publication_matched(
-//             eprosima::fastdds::dds::DataWriter* writer,
-//             const eprosima::fastdds::dds::PublicationMatchedStatus& info) override;
+    void on_participant_discovery(
+            eprosima::fastdds::dds::DomainParticipant* participant,
+            eprosima::fastrtps::rtps::ParticipantDiscoveryInfo&& info) override;
 
-// };
+    void on_subscriber_discovery(
+            eprosima::fastdds::dds::DomainParticipant* participant,
+            eprosima::fastrtps::rtps::ReaderDiscoveryInfo&& info) override;
+
+    void on_publisher_discovery(
+            eprosima::fastdds::dds::DomainParticipant* participant,
+            eprosima::fastrtps::rtps::WriterDiscoveryInfo&& info) override;
+};
 
 #endif /* DiscoveryServerPARTICIPANT_HPP */
