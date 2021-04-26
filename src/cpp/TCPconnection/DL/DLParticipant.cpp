@@ -70,8 +70,6 @@ bool DLParticipant::init(
     // TCP client configuration
     if (connection_port != -1)
     {
-        pqos.transport().use_builtin_transports = false;
-
         std::shared_ptr<TCPv4TransportDescriptor> descriptor = std::make_shared<TCPv4TransportDescriptor>();
 
         descriptor->sendBufferSize = 0;
@@ -90,9 +88,6 @@ bool DLParticipant::init(
     // TCP server configuration
     if (listening_port != -1)
     {
-        // No problem repeating this operation
-        pqos.transport().use_builtin_transports = false;
-
         std::shared_ptr<TCPv4TransportDescriptor> descriptor = std::make_shared<TCPv4TransportDescriptor>();
 
         descriptor->sendBufferSize = 0;
