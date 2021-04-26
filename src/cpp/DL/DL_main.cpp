@@ -138,7 +138,7 @@ const option::Descriptor usage[] = {
     { CONNECTION_PORT, 0, "", "connection-port",             Arg::Numeric,
         "  --connection-port=<num> \tPort where the Discovery Server is listening (Default: 5100)."},
     { CONNECTION_ADDRESS, 0, "", "connection-address",             Arg::Required,
-        "  --connection-address=<address> \tIP address where the Discovery Server is listening [Required]."},
+        "  --connection-address=<address> \tIP address where the Discovery Server is listening (Default '127.0.0.1')."},
     { LISTENING_PORT, 0, "", "listening-port",             Arg::Numeric,
         "  --listening-port=<num> \tPort to listen as TCP server. -1 to set as TCP client (Default: -1)."},
     { LISTENING_ADDRESS, 0, "", "listening-address",             Arg::String,
@@ -171,7 +171,7 @@ int main(int argc, char** argv)
     int samples = 10;
     uint32_t data_size = 5;
     int connection_port = 5100;
-    std::string connection_address("");
+    std::string connection_address("127.0.0.1");
     int listening_port = -1;
     std::string listening_address("");
 

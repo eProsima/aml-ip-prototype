@@ -123,10 +123,10 @@ const option::Descriptor usage[] = {
         "The default FastDDS transports are available.\nGeneral options:" },
     { HELP,    0,"h", "help",                   Arg::None,      "  -h \t--help  \tProduce help message." },
     { ADDRESS, 0, "a", "address",               Arg::String,
-        "  -a <address> \t--address=<address> \t Public IP address to connect from outside the LAN [Required]."},
-    { TCP_PORT, 0, "t", "port",             Arg::Numeric,
+        "  -a <address> \t--address=<address> \t Public IP address to connect from outside the LAN (Default '127.0.0.1')."},
+    { TCP_PORT, 0, "p", "port",                 Arg::Numeric,
         "  -p <num> \t--port=<num> \tPort to listen as TCP server (Default 5100)."},
-    { TIME, 0, "", "time",                      Arg::Numeric,
+    { TIME, 0, "t", "time",                      Arg::Numeric,
         "  -t <num>\t--time=<num> \tTime in seconds until the server closes, if 0 wait for user input (Default 0)."},
     { BACKUP, 0, "b", "tbackupme",              Arg::None,
         "  -b \t--backup \tSet Discovery Server as Backup. Use only for debug purpose and erase old db before execute."},
@@ -156,7 +156,7 @@ int main(int argc, char** argv)
     // Get executable arguments
     int tcp_port = 5100;
     uint32_t time = 0;
-    std::string address("");
+    std::string address("127.0.0.1");
     bool backup = false;
 
     // No required arguments
