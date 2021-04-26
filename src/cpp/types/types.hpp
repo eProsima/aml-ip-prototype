@@ -23,4 +23,10 @@
 #define SERVER_DEFAULT_GUID "01.0f.2d.41.4c.47.45.42.52.41.49.43"
 #define DEFAULT_DOMAIN 11
 
+constexpr const char* DL_TOPIC = "_aml_ip_topic_dloutput";
+constexpr const char* ENGINE_TOPIC = "_aml_ip_topic_atomization";
+
+constexpr const char* DL_TOPIC_TYPE = "AML_IP_DLOutput";
+constexpr const char* ENGINE_TOPIC_TYPE = "AML_IP_Atomization";
+
 #endif // TYPES_TYPES_HPP

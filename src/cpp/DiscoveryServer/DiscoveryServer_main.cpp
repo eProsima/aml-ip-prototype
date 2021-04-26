@@ -70,21 +70,20 @@ struct Arg: public option::Arg
 
     static option::ArgStatus Float(const option::Option& option, bool msg)
     {
-        // char* endptr = 0;
-        // if (option.arg != 0 && std::stof(option.arg, &endptr, 10))
-        // {
-        // }
-        // if (endptr != option.arg && *endptr == 0)
-        // {
-        //     return option::ARG_OK;
-        // }
+        char* endptr = 0;
+        if (option.arg != 0 && std::strtof(option.arg, &endptr))
+        {
+        }
+        if (endptr != option.arg && *endptr == 0)
+        {
+            return option::ARG_OK;
+        }
 
-        // if (msg)
-        // {
-        //     print_error("Option '", option, "' requires a float argument\n");
-        // }
-        // return option::ARG_ILLEGAL;
-        return option::ARG_OK;
+        if (msg)
+        {
+            print_error("Option '", option, "' requires a float argument\n");
+        }
+        return option::ARG_ILLEGAL;
     }
 
     static option::ArgStatus String(const option::Option& option, bool msg)
@@ -109,7 +108,6 @@ enum  optionIndex {
     UNKNOWN_OPT,
     HELP,
     TCP_PORT,
-    UDP_PORT,
     ADDRESS,
     TIME,
     BACKUP
@@ -119,21 +117,19 @@ enum  optionIndex {
  * Usage description
  */
 const option::Descriptor usage[] = {
-    { UNKNOWN_OPT, 0,"", "",                Arg::None,
+    { UNKNOWN_OPT, 0,"", "",                    Arg::None,
         "Usage: AML IP DiscoveryServer \n" \
         "Set IP address and listening ports.\nTo use WAN connection TCP port must be open from router.\n" \
         "The default FastDDS transports are available.\nGeneral options:" },
-    { HELP,    0,"h", "help",               Arg::None,      "  -h \t--help  \tProduce help message." },
-    { TCP_PORT, 0, "t", "tcp-port",             Arg::Numeric,
-        "-t <num>\t  --tcp-port=<num> \tPort to listen as TCP server (Default 5100)."},
-    { UDP_PORT, 0, "u", "udp-port",             Arg::Numeric,
-        "-u <num>\t  --udp-port=<num> \tPort to listen in UDP (Default 11811)."},
-    { ADDRESS, 0, "a", "address",             Arg::String,
-        "-a <address>\t  --address=<address> \t Public IP address to connect from outside the LAN [Required]."},
-    { TIME, 0, "", "time",             Arg::Numeric,
-        "--time \tTime in seconds until the server closes, if 0 wait for user input (Default 0)."},
-    { BACKUP, 0, "b", "tbackupme",             Arg::None,
-        "-b \t--backup \tSet Discovery Server as Backup. Use only for debug purpose and erase old db before execute."},
+    { HELP,    0,"h", "help",                   Arg::None,      "  -h \t--help  \tProduce help message." },
+    { ADDRESS, 0, "a", "address",               Arg::String,
+        "  -a <address> \t--address=<address> \t Public IP address to connect from outside the LAN [Required]."},
+    { TCP_PORT, 0, "t", "port",             Arg::Numeric,
+        "  -p <num> \t--port=<num> \tPort to listen as TCP server (Default 5100)."},
+    { TIME, 0, "", "time",                      Arg::Numeric,
+        "  -t <num>\t--time=<num> \tTime in seconds until the server closes, if 0 wait for user input (Default 0)."},
+    { BACKUP, 0, "b", "tbackupme",              Arg::None,
+        "  -b \t--backup \tSet Discovery Server as Backup. Use only for debug purpose and erase old db before execute."},
     { 0, 0, 0, 0, 0, 0 }
 };
 
@@ -159,7 +155,6 @@ int main(int argc, char** argv)
 
     // Get executable arguments
     int tcp_port = 5100;
-    int udp_port = 11811;
     uint32_t time = 0;
     std::string address("");
     bool backup = false;
@@ -201,10 +196,6 @@ int main(int argc, char** argv)
                     tcp_port = std::strtol(opt.arg, nullptr, 10);
                     break;
 
-                case UDP_PORT:
-                    udp_port = std::strtol(opt.arg, nullptr, 10);
-                    break;
-
                 case ADDRESS:
                     address = opt.arg;
                     break;
@@ -240,7 +231,7 @@ int main(int argc, char** argv)
 
     // Create Participant object and run thread of publishing in loop
     DiscoveryServerParticipant part;
-    if (part.init(tcp_port, udp_port, address, backup))
+    if (part.init(tcp_port, address, backup))
     {
         part.run(time);
     }

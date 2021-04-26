@@ -20,8 +20,7 @@
 #ifndef DLPARTICIPANT_HPP
 #define DLPARTICIPANT_HPP
 
-#include "../types/DLOutput/DLOutput.h"
-#include "../types/types.hpp"
+#include "../../types/DLOutput/DLOutput.h"
 
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 #include <fastdds/dds/publisher/Publisher.hpp>
@@ -44,6 +43,7 @@ public:
 
     //!Initialize
     bool init(
+        int domain,
         int connection_port,
         std::string connection_address,
         int listening_port,
@@ -57,7 +57,6 @@ public:
 
 protected:
 
-    // AML_INTEGRATION
     void runThread(
             int number,
             long sleep_ms,

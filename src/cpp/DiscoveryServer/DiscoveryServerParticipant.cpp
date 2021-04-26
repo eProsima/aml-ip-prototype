@@ -43,14 +43,13 @@ using namespace eprosima::fastrtps::rtps;
 DiscoveryServerParticipant::DiscoveryServerParticipant()
     : participant_(nullptr)
     , address_("")
-    , tcp_port_(0)
     , listener_(nullptr)
+    , tcp_port_(0)
 {
 }
 
 bool DiscoveryServerParticipant::init(
         int tcp_port,
-        int udp_port,
         std::string address,
         bool backup)
 {
@@ -109,26 +108,6 @@ bool DiscoveryServerParticipant::init(
         IPLocator::setPhysicalPort(tcp_locator, tcp_port);
 
         pqos.wire_protocol().builtin.metatrafficUnicastLocatorList.push_back(tcp_locator);
-    }
-
-    // UDP configuration
-    if (udp_port != -1)
-    {
-        // Create UDPv4 transport ! not needed
-        // std::shared_ptr<UDPv4TransportDescriptor> descriptor = std::make_shared<UDPv4TransportDescriptor>();
-
-        // descriptor->sendBufferSize = 0;
-        // descriptor->receiveBufferSize = 0;
-
-        // pqos.transport().user_transports.push_back(descriptor);
-
-        // Create locator
-        Locator_t udp_locator;
-        udp_locator.kind = LOCATOR_KIND_UDPv4;
-        udp_locator.port = udp_port;
-        IPLocator::setIPv4(udp_locator, address);
-
-        pqos.wire_protocol().builtin.metatrafficUnicastLocatorList.push_back(udp_locator);
     }
 
     listener_ = new DiscoveryServerListener();

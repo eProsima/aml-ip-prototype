@@ -49,7 +49,6 @@ public:
     //!Initialize
     bool init(
         int tcp_port,
-        int udp_port,
         std::string address,
         bool backup);
 

@@ -33,7 +33,7 @@ AML_IP_Atomization generate_random_atomization_data(uint32_t data_size)
 
         // The size of the atoms are always the same
         std::vector<uint32_t> ucs(data_size);
-        for (int j = 0; j < data_size; ++j)
+        for (unsigned int j = 0; j < data_size; ++j)
         {
             ucs[j] = rand();
         }

@@ -17,13 +17,11 @@
  *
  */
 
-#include "DLParticipant.hpp"
+#include "EngineParticipant.hpp"
 
 #include <string>
-#include <stdlib.h>
 
-#include "../thirdparty/optionparser.h"
-#include "../types/types.hpp"
+#include "../../thirdparty/optionparser.h"
 
 /*
  * Struct to parse the executable arguments
@@ -110,6 +108,7 @@ enum  optionIndex {
     HELP,
     PERIOD,
     SAMPLES,
+    DOMAIN,
     DATA_SIZE,
     CONNECTION_PORT,
     CONNECTION_ADDRESS,
@@ -122,27 +121,26 @@ enum  optionIndex {
  */
 const option::Descriptor usage[] = {
     { UNKNOWN_OPT, 0,"", "",                Arg::None,
-        "Usage: AML IP DL \n" \
-        "Connecting port and address must specify where the Discovery Server is listening.\n" \
-        "Listening port and address are not required, but without them this client could only work as a TCP client.\n" \
-        "General options:" },
+        "Usage: AML IP Engine \n\nGeneral options:" },
     { HELP,    0,"h", "help",               Arg::None,      "  -h \t--help  \tProduce help message." },
     { PERIOD, 0, "p", "period",             Arg::Float,
         "  -p <float> \t--period=<float> \tPeriod to send new random data (Default: 2)." },
     { SAMPLES, 0, "s", "samples",             Arg::Numeric,
         "  -s <num> \t--samples=<num> \tNumber of samples to send (Default: 10)." \
         " With samples=0 it keept sending till enter is pressed" },
+    { DOMAIN, 0, "d", "domain",             Arg::Numeric,
+        "  -d <num> \t--domain=<num> \tNumber of domain (Default: 11)."},
     { DATA_SIZE, 0, "l", "size",             Arg::Numeric,
         "  -l <num> \t--size=<num> \tMax number of relations in data to send(Default: 5)." \
-        " This value also works as seed for random generation."},
+        " This value also works as seed for randome generation."},
     { CONNECTION_PORT, 0, "", "connection-port",             Arg::Numeric,
-        "  --connection-port=<num> \tPort where the Discovery Server is listening (Default: 5100)."},
-    { CONNECTION_ADDRESS, 0, "", "connection-address",             Arg::Required,
-        "  --connection-address=<address> \tIP address where the Discovery Server is listening [Required]."},
+        "  --connection-port=<num> \tPort where the TCP server is listening (Default: -1)."},
+    { CONNECTION_ADDRESS, 0, "", "connection-address",             Arg::String,
+        "  --connection-address=<address> \tIP address where the TCP server is listening (Default: '')."},
     { LISTENING_PORT, 0, "", "listening-port",             Arg::Numeric,
-        "  --listening-port=<num> \tPort to listen as TCP server. -1 to set as TCP client (Default: -1)."},
+        "  --listening-port=<num> \tPort to listen as TCP server (Default: 5100)."},
     { LISTENING_ADDRESS, 0, "", "listening-address",             Arg::String,
-        "  --listening-address=<address> \tIP address to listen as TCP server (Default: '')."},
+        "  --listening-address=<address> \tIP address to listen as TCP server (Default: '127.0.0.1')."},
     { 0, 0, 0, 0, 0, 0 }
 };
 
@@ -155,7 +153,7 @@ int main(int argc, char** argv)
     size_t sz = 0;
     if (_dupenv_s(&buf, &sz, "COLUMNS") == 0 && buf != nullptr)
     {
-        columns = strtol(buf, nullptr, 10);
+        columns = std::strtol(buf, nullptr, 10);
         free(buf);
     }
     else
@@ -169,11 +167,12 @@ int main(int argc, char** argv)
     // Get executable arguments
     float period = 2;
     int samples = 10;
+    int domain = 11;
     uint32_t data_size = 5;
-    int connection_port = 5100;
+    int connection_port = -1;
     std::string connection_address("");
-    int listening_port = -1;
-    std::string listening_address("");
+    int listening_port = 5100;
+    std::string listening_address("127.0.0.1");
 
     // No required arguments
     if (argc > 0)
@@ -216,6 +215,10 @@ int main(int argc, char** argv)
                     samples = std::strtol(opt.arg, nullptr, 10);
                     break;
 
+                case DOMAIN:
+                    domain = std::strtol(opt.arg, nullptr, 10);
+                    break;
+
                 case DATA_SIZE:
                     data_size = std::strtol(opt.arg, nullptr, 10);
                     break;
@@ -249,20 +252,12 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    // Public Address must be specified
-    if (connection_address == "")
-    {
-        std::cout << "CLI error: Discovery Server IP address must be specified" << std::endl;
-        option::printUsage(fwrite, stdout, usage, columns);
-        return 1;
-    }
-
     // Initialize random seed
     srand(data_size);
 
     // Create Participant object and run thread of publishing in loop
-    DLParticipant part;
-    if (part.init(connection_port, connection_address, listening_port, listening_address))
+    EngineParticipant part;
+    if (part.init(domain, connection_port, connection_address, listening_port, listening_address))
     {
         part.run(samples, period, data_size);
     }

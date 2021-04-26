@@ -18,9 +18,9 @@
  */
 
 #include "DLParticipant.hpp"
-#include "../types/DLOutput/DLOutputPubSubTypes.h"
-#include "../utils/utils.hpp"
-
+#include "../../types/DLOutput/DLOutputPubSubTypes.h"
+#include "../../utils/utils.hpp"
+#include "../../types/types.hpp"
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
 #include <fastdds/dds/domain/qos/DomainParticipantQos.hpp>
 #include <fastdds/dds/publisher/qos/PublisherQos.hpp>
@@ -28,7 +28,6 @@
 #include <fastdds/dds/publisher/qos/DataWriterQos.hpp>
 #include <fastrtps/xmlparser/XMLProfileManager.h>
 #include <fastdds/rtps/transport/TCPv4TransportDescriptor.h>
-#include <fastdds/rtps/transport/UDPv4TransportDescriptor.h>
 #include <fastrtps/utils/IPLocator.h>
 
 #include <stdlib.h>
@@ -36,8 +35,6 @@
 
 using namespace eprosima::fastdds::dds;
 using namespace eprosima::fastdds::rtps;
-using namespace eprosima::fastrtps;
-using namespace eprosima::fastrtps::rtps;
 
 DLParticipant::DLParticipant()
     : participant_(nullptr)
@@ -51,6 +48,7 @@ DLParticipant::DLParticipant()
 }
 
 bool DLParticipant::init(
+        int domain,
         int connection_port,
         std::string connection_address,
         int listening_port,
@@ -66,18 +64,35 @@ bool DLParticipant::init(
     pqos.wire_protocol().builtin.discovery_config.leaseDuration = eprosima::fastrtps::c_TimeInfinite;
     pqos.wire_protocol().builtin.discovery_config.leaseDuration_announcementperiod =
             eprosima::fastrtps::Duration_t(2, 0);
-    pqos.name("DL Participant");
+    pqos.name("DL Participant TCP");
 
-    // Set as a client
-    pqos.wire_protocol().builtin.discovery_config.discoveryProtocol = DiscoveryProtocol::CLIENT;
+    // TCP Manual configuration
+    // TCP client configuration
+    if (connection_port != -1)
+    {
+        pqos.transport().use_builtin_transports = false;
 
-    // Set Server guid manually
-    RemoteServerAttributes server_attr;
-    server_attr.ReadguidPrefix(SERVER_DEFAULT_GUID);
+        std::shared_ptr<TCPv4TransportDescriptor> descriptor = std::make_shared<TCPv4TransportDescriptor>();
+
+        descriptor->sendBufferSize = 0;
+        descriptor->receiveBufferSize = 0;
+
+        Locator initial_peer_locator;
+        initial_peer_locator.kind = LOCATOR_KIND_TCPv4;
+
+        eprosima::fastrtps::rtps::IPLocator::setIPv4(initial_peer_locator, connection_address);
+        initial_peer_locator.port = connection_port;
+        pqos.wire_protocol().builtin.initialPeersList.push_back(initial_peer_locator); // Publisher's meta channel
+
+        pqos.transport().user_transports.push_back(descriptor);
+    }
 
     // TCP server configuration
     if (listening_port != -1)
     {
+        // No problem repeating this operation
+        pqos.transport().use_builtin_transports = false;
+
         std::shared_ptr<TCPv4TransportDescriptor> descriptor = std::make_shared<TCPv4TransportDescriptor>();
 
         descriptor->sendBufferSize = 0;
@@ -87,28 +102,8 @@ bool DLParticipant::init(
         descriptor->set_WAN_address(listening_address);
         pqos.transport().user_transports.push_back(descriptor);
     }
-    else
-    {
-        // TCP client configuration
-        std::shared_ptr<TCPv4TransportDescriptor> descriptor = std::make_shared<TCPv4TransportDescriptor>();
 
-        descriptor->sendBufferSize = 0;
-        descriptor->receiveBufferSize = 0;
-
-        pqos.transport().user_transports.push_back(descriptor);
-    }
-
-    // Discovery server locator configuration TCP
-    Locator_t tcp_locator;
-    tcp_locator.kind = LOCATOR_KIND_TCPv4;
-    IPLocator::setIPv4(tcp_locator, connection_address);
-    IPLocator::setLogicalPort(tcp_locator, connection_port);
-    IPLocator::setPhysicalPort(tcp_locator, connection_port);
-    server_attr.metatrafficUnicastLocatorList.push_back(tcp_locator);
-
-    pqos.wire_protocol().builtin.discovery_config.m_DiscoveryServers.push_back(server_attr);
-
-    participant_ = DomainParticipantFactory::get_instance()->create_participant(DEFAULT_DOMAIN, pqos);
+    participant_ = DomainParticipantFactory::get_instance()->create_participant(domain, pqos);
 
     if (participant_ == nullptr)
     {
@@ -177,12 +172,10 @@ void DLParticipant::runThread(
         long sleep_ms,
         uint32_t data_size)
 {
-    // AML_INTEGRATION
     int index = 0;
     while (!stop_.load() && (index < samples || samples == 0))
     {
         // It sleeps to simulate DL execution
-        // AML_INTEGRATION change for a condition variable that activates with new data to send
         std::this_thread::sleep_for(std::chrono::milliseconds(sleep_ms));
 
         // In case stop has been pressed between sleep
@@ -191,8 +184,7 @@ void DLParticipant::runThread(
             break;
         }
 
-        // Generate random data
-        // AML_INTEGRATION change with the data that must be sent
+        // Generate randome data
         AML_IP_DLOutput data = generate_random_dloutput_data(data_size);
 
         if (!publish(data))

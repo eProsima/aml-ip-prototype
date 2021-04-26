@@ -72,21 +72,20 @@ struct Arg: public option::Arg
 
     static option::ArgStatus Float(const option::Option& option, bool msg)
     {
-            // char* endptr = 0;
-            // if (option.arg != 0 && std::stof(option.arg, &endptr, 10))
-            // {
-            // }
-            // if (endptr != option.arg && *endptr == 0)
-            // {
-            //     return option::ARG_OK;
-            // }
+        char* endptr = 0;
+        if (option.arg != 0 && std::strtof(option.arg, &endptr))
+        {
+        }
+        if (endptr != option.arg && *endptr == 0)
+        {
+            return option::ARG_OK;
+        }
 
-            // if (msg)
-            // {
-            //     print_error("Option '", option, "' requires a float argument\n");
-            // }
-            // return option::ARG_ILLEGAL;
-        return option::ARG_OK;
+        if (msg)
+        {
+            print_error("Option '", option, "' requires a float argument\n");
+        }
+        return option::ARG_ILLEGAL;
     }
 
     static option::ArgStatus String(const option::Option& option, bool msg)
@@ -111,7 +110,6 @@ enum  optionIndex {
     HELP,
     PERIOD,
     SAMPLES,
-    DOMAIN,
     DATA_SIZE,
     CONNECTION_PORT,
     CONNECTION_ADDRESS,
@@ -134,17 +132,15 @@ const option::Descriptor usage[] = {
     { SAMPLES, 0, "s", "samples",             Arg::Numeric,
         "  -s <num> \t--samples=<num> \tNumber of samples to send (Default: 10)." \
         " With samples=0 it keept sending till enter is pressed" },
-    { DOMAIN, 0, "d", "domain",             Arg::Numeric,
-        "  -d <num> \t--domain=<num> \tNumber of domain (Default: 11)."},
     { DATA_SIZE, 0, "l", "size",             Arg::Numeric,
         "  -l <num> \t--size=<num> \tMax number of relations in data to send(Default: 5)." \
-        " This value also works as seed for randome generation."},
+        " This value also works as seed for random generation."},
     { CONNECTION_PORT, 0, "", "connection-port",             Arg::Numeric,
-        "  --connection-port=<num> \tPort where the TCP server is listening (Default: 5100)."},
-    { CONNECTION_ADDRESS, 0, "", "connection-address",             Arg::String,
-        "  --connection-address=<address> \tIP address where the TCP server is listening (Default: '')."},
+        "  --connection-port=<num> \tPort where the Discovery Server is listening (Default: 5100)."},
+    { CONNECTION_ADDRESS, 0, "", "connection-address",             Arg::Required,
+        "  --connection-address=<address> \tIP address where the Discovery Server is listening [Required]."},
     { LISTENING_PORT, 0, "", "listening-port",             Arg::Numeric,
-        "  --listening-port=<num> \tPort to listen as TCP server (Default: -1)."},
+        "  --listening-port=<num> \tPort to listen as TCP server. -1 to set as TCP client (Default: -1)."},
     { LISTENING_ADDRESS, 0, "", "listening-address",             Arg::String,
         "  --listening-address=<address> \tIP address to listen as TCP server (Default: '')."},
     { 0, 0, 0, 0, 0, 0 }
@@ -173,7 +169,6 @@ int main(int argc, char** argv)
     // Get executable arguments
     float period = 2;
     int samples = 10;
-    int domain = DEFAULT_DOMAIN;
     uint32_t data_size = 5;
     int connection_port = 5100;
     std::string connection_address("");
@@ -219,10 +214,6 @@ int main(int argc, char** argv)
 
                 case SAMPLES:
                     samples = std::strtol(opt.arg, nullptr, 10);
-                    break;
-
-                case DOMAIN:
-                    domain = std::strtol(opt.arg, nullptr, 10);
                     break;
 
                 case DATA_SIZE:
@@ -271,7 +262,7 @@ int main(int argc, char** argv)
 
     // Create Participant object and run thread of publishing in loop
     EngineParticipant part;
-    if (part.init(domain, connection_port, connection_address, listening_port, listening_address))
+    if (part.init(connection_port, connection_address, listening_port, listening_address))
     {
         part.run(samples, period, data_size);
     }
