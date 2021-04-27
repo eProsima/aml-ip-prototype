@@ -48,12 +48,13 @@ public:
 
     //!Initialize
     bool init(
-        int tcp_port,
-        std::string address,
-        bool backup);
+            int tcp_port,
+            std::string address,
+            bool backup);
 
     //!Run for number samples
-    void run(uint32_t time);
+    void run(
+            uint32_t time);
 
 protected:
 

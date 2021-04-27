@@ -44,16 +44,20 @@ public:
 
     //!Initialize
     bool init(
-        int connection_port,
-        std::string connection_address,
-        int listening_port,
-        std::string listening_address);
+            int connection_port,
+            std::string connection_address,
+            int listening_port,
+            std::string listening_address);
 
     //!Publish a sample
-    bool publish(AML_IP_DLOutput data);
+    bool publish(
+            AML_IP_DLOutput data);
 
     //!Run for number samples
-    void run(int samples, float period, uint32_t data_size);
+    void run(
+            int samples,
+            float period,
+            uint32_t data_size);
 
 protected:
 

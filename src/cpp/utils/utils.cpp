@@ -21,7 +21,8 @@
 
 #include "utils.hpp"
 
-AML_IP_Atomization generate_random_atomization_data(uint32_t data_size)
+AML_IP_Atomization generate_random_atomization_data(
+        uint32_t data_size)
 {
     AML_IP_Atomization data;
     std::vector<AML_IP_Atom> atoms;
@@ -47,7 +48,8 @@ AML_IP_Atomization generate_random_atomization_data(uint32_t data_size)
     return data;
 }
 
-AML_IP_DLOutput generate_random_dloutput_data(uint32_t data_size)
+AML_IP_DLOutput generate_random_dloutput_data(
+        uint32_t data_size)
 {
     AML_IP_DLOutput data;
     std::vector<AML_IP_Relation> relations;

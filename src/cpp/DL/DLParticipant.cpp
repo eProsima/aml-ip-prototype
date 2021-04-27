@@ -198,12 +198,12 @@ void DLParticipant::runThread(
         if (!publish(data))
         {
             std::cout << std::endl << "<< DL Participant " << participant_->guid().guidPrefix
-                << " ERROR sending message: " << ++index << std::endl;
+                      << " ERROR sending message: " << ++index << std::endl;
         }
         else
         {
             std::cout << std::endl << "<< DL Participant " << participant_->guid().guidPrefix
-                << " sent DLOutput number: " << ++index << " message: " << data << std::endl;
+                      << " sent DLOutput number: " << ++index << " message: " << data << std::endl;
         }
     }
 }
@@ -218,20 +218,21 @@ void DLParticipant::run(
     if (samples == 0)
     {
         std::cout << "DL Participant " << participant_->guid().guidPrefix
-            << " publishing. Please press enter to stop it at any time." << std::endl;
+                  << " publishing. Please press enter to stop it at any time." << std::endl;
         std::cin.ignore();
         stop_.store(true);
     }
     else
     {
         std::cout << "DL Participant " << participant_->guid().guidPrefix
-            << " publishing " << samples << " samples." << std::endl;
+                  << " publishing " << samples << " samples." << std::endl;
     }
 
     thread.join();
 }
 
-bool DLParticipant::publish(AML_IP_DLOutput data)
+bool DLParticipant::publish(
+        AML_IP_DLOutput data)
 {
     return writer_->write((void*)&data);
 }
@@ -243,12 +244,12 @@ void DLListener::on_publication_matched(
     if (info.current_count_change == 1)
     {
         std::cout << "DL Participant " << writer->guid().guidPrefix << " matched with "
-            << info.last_subscription_handle << std::endl;
+                  << info.last_subscription_handle << std::endl;
     }
     else if (info.current_count_change == -1)
     {
         std::cout << "DL Participant " << writer->guid().guidPrefix << " unmatched with "
-            << info.last_subscription_handle << std::endl;
+                  << info.last_subscription_handle << std::endl;
     }
     else
     {

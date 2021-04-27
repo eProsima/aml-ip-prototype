@@ -49,17 +49,21 @@ public:
 
     //!Initialize
     bool init(
-        int domain,
-        int connection_port,
-        std::string connection_address,
-        int listening_port,
-        std::string listening_address);
+            int domain,
+            int connection_port,
+            std::string connection_address,
+            int listening_port,
+            std::string listening_address);
 
     //!Publish a sample
-    bool publish(AML_IP_Atomization data);
+    bool publish(
+            AML_IP_Atomization data);
 
     //!Run for number samples
-    void run(int samples, float period, uint32_t data_size);
+    void run(
+            int samples,
+            float period,
+            uint32_t data_size);
 
 protected:
 
@@ -124,13 +128,14 @@ public:
     }
 
     void on_data_available(
-        eprosima::fastdds::dds::DataReader* reader) override;
+            eprosima::fastdds::dds::DataReader* reader) override;
 
     void on_subscription_matched(
-        eprosima::fastdds::dds::DataReader* reader,
-        const eprosima::fastdds::dds::SubscriptionMatchedStatus& info) override;
+            eprosima::fastdds::dds::DataReader* reader,
+            const eprosima::fastdds::dds::SubscriptionMatchedStatus& info) override;
 
 private:
+
     int samples_;
 };
 
@@ -148,13 +153,14 @@ public:
     }
 
     void on_data_available(
-        eprosima::fastdds::dds::DataReader* reader) override;
+            eprosima::fastdds::dds::DataReader* reader) override;
 
     void on_subscription_matched(
-        eprosima::fastdds::dds::DataReader* reader,
-        const eprosima::fastdds::dds::SubscriptionMatchedStatus& info) override;
+            eprosima::fastdds::dds::DataReader* reader,
+            const eprosima::fastdds::dds::SubscriptionMatchedStatus& info) override;
 
 private:
+
     int samples_;
 };
 

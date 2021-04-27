@@ -26,31 +26,48 @@
 /*
  * Struct to parse the executable arguments
  */
-struct Arg: public option::Arg
+struct Arg : public option::Arg
 {
-    static void print_error(const char* msg1, const option::Option& opt, const char* msg2)
+    static void print_error(
+            const char* msg1,
+            const option::Option& opt,
+            const char* msg2)
     {
         fprintf(stderr, "%s", msg1);
         fwrite(opt.name, opt.namelen, 1, stderr);
         fprintf(stderr, "%s", msg2);
     }
 
-    static option::ArgStatus Unknown(const option::Option& option, bool msg)
+    static option::ArgStatus Unknown(
+            const option::Option& option,
+            bool msg)
     {
-        if (msg) print_error("Unknown option '", option, "'\n");
+        if (msg)
+        {
+            print_error("Unknown option '", option, "'\n");
+        }
         return option::ARG_ILLEGAL;
     }
 
-    static option::ArgStatus Required(const option::Option& option, bool msg)
+    static option::ArgStatus Required(
+            const option::Option& option,
+            bool msg)
     {
         if (option.arg != 0 && option.arg[0] != 0)
-        return option::ARG_OK;
+        {
+            return option::ARG_OK;
+        }
 
-        if (msg) print_error("Option '", option, "' requires an argument\n");
+        if (msg)
+        {
+            print_error("Option '", option, "' requires an argument\n");
+        }
         return option::ARG_ILLEGAL;
     }
 
-    static option::ArgStatus Numeric(const option::Option& option, bool msg)
+    static option::ArgStatus Numeric(
+            const option::Option& option,
+            bool msg)
     {
         char* endptr = 0;
         if (option.arg != 0 && std::strtol(option.arg, &endptr, 10))
@@ -68,7 +85,9 @@ struct Arg: public option::Arg
         return option::ARG_ILLEGAL;
     }
 
-    static option::ArgStatus Float(const option::Option& option, bool msg)
+    static option::ArgStatus Float(
+            const option::Option& option,
+            bool msg)
     {
         char* endptr = 0;
         if (option.arg != 0 && std::strtof(option.arg, &endptr))
@@ -86,7 +105,9 @@ struct Arg: public option::Arg
         return option::ARG_ILLEGAL;
     }
 
-    static option::ArgStatus String(const option::Option& option, bool msg)
+    static option::ArgStatus String(
+            const option::Option& option,
+            bool msg)
     {
         if (option.arg != 0)
         {
@@ -98,12 +119,14 @@ struct Arg: public option::Arg
         }
         return option::ARG_ILLEGAL;
     }
+
 };
 
 /*
  * Option arguments available
  */
-enum  optionIndex {
+enum  optionIndex
+{
     UNKNOWN_OPT,
     HELP,
     PERIOD,
@@ -120,31 +143,33 @@ enum  optionIndex {
  * Usage description
  */
 const option::Descriptor usage[] = {
-    { UNKNOWN_OPT, 0,"", "",                Arg::None,
-        "Usage: AML IP Engine \n\nGeneral options:" },
-    { HELP,    0,"h", "help",               Arg::None,      "  -h \t--help  \tProduce help message." },
+    { UNKNOWN_OPT, 0, "", "",                Arg::None,
+      "Usage: AML IP Engine \n\nGeneral options:" },
+    { HELP,    0, "h", "help",               Arg::None,      "  -h \t--help  \tProduce help message." },
     { PERIOD, 0, "p", "period",             Arg::Float,
-        "  -p <float> \t--period=<float> \tPeriod to send new random data (Default: 2)." },
+      "  -p <float> \t--period=<float> \tPeriod to send new random data (Default: 2)." },
     { SAMPLES, 0, "s", "samples",             Arg::Numeric,
-        "  -s <num> \t--samples=<num> \tNumber of samples to send (Default: 10)." \
-        " With samples=0 it keept sending till enter is pressed" },
+      "  -s <num> \t--samples=<num> \tNumber of samples to send (Default: 10)." \
+      " With samples=0 it keept sending till enter is pressed" },
     { DOMAIN, 0, "d", "domain",             Arg::Numeric,
-        "  -d <num> \t--domain=<num> \tNumber of domain (Default: 11)."},
+      "  -d <num> \t--domain=<num> \tNumber of domain (Default: 11)."},
     { DATA_SIZE, 0, "l", "size",             Arg::Numeric,
-        "  -l <num> \t--size=<num> \tMax number of relations in data to send(Default: 5)." \
-        " This value also works as seed for randome generation."},
+      "  -l <num> \t--size=<num> \tMax number of relations in data to send(Default: 5)." \
+      " This value also works as seed for randome generation."},
     { CONNECTION_PORT, 0, "", "connection-port",             Arg::Numeric,
-        "  --connection-port=<num> \tPort where the TCP server is listening (Default: -1)."},
+      "  --connection-port=<num> \tPort where the TCP server is listening (Default: -1)."},
     { CONNECTION_ADDRESS, 0, "", "connection-address",             Arg::String,
-        "  --connection-address=<address> \tIP address where the TCP server is listening (Default: '')."},
+      "  --connection-address=<address> \tIP address where the TCP server is listening (Default: '')."},
     { LISTENING_PORT, 0, "", "listening-port",             Arg::Numeric,
-        "  --listening-port=<num> \tPort to listen as TCP server (Default: 5100)."},
+      "  --listening-port=<num> \tPort to listen as TCP server (Default: 5100)."},
     { LISTENING_ADDRESS, 0, "", "listening-address",             Arg::String,
-        "  --listening-address=<address> \tIP address to listen as TCP server (Default: '127.0.0.1')."},
+      "  --listening-address=<address> \tIP address to listen as TCP server (Default: '127.0.0.1')."},
     { 0, 0, 0, 0, 0, 0 }
 };
 
-int main(int argc, char** argv)
+int main(
+        int argc,
+        char** argv)
 {
     // Variable to pretty print usage help
     int columns;
@@ -162,7 +187,7 @@ int main(int argc, char** argv)
     }
 #else
     columns = getenv("COLUMNS") ? atoi(getenv("COLUMNS")) : 80;
-#endif
+#endif // if defined(_WIN32)
 
     // Get executable arguments
     float period = 2;

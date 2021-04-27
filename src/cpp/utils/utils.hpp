@@ -23,9 +23,11 @@
 #include "../types/DLOutput/DLOutput.h"
 #include "../types/Atomization/Atomization.h"
 
-AML_IP_Atomization generate_random_atomization_data(uint32_t data_size);
+AML_IP_Atomization generate_random_atomization_data(
+        uint32_t data_size);
 
-AML_IP_DLOutput generate_random_dloutput_data(uint32_t data_size);
+AML_IP_DLOutput generate_random_dloutput_data(
+        uint32_t data_size);
 
 std::ostream& operator <<(
         std::ostream& output,
