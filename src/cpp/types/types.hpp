@@ -34,7 +34,8 @@ constexpr const char* ENGINE_TOPIC = "_aml_ip_topic_atomization";
 constexpr const char* DL_TOPIC_TYPE = "AML_IP_DLOutput";
 constexpr const char* ENGINE_TOPIC_TYPE = "AML_IP_Atomization";
 
-inline eprosima::fastrtps::rtps::GuidPrefix_t guid_server(int id)
+inline eprosima::fastrtps::rtps::GuidPrefix_t guid_server(
+        int id)
 {
     eprosima::fastrtps::rtps::GuidPrefix_t guid;
     std::istringstream(SERVER_DEFAULT_GUID) >> guid;

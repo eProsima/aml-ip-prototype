@@ -289,13 +289,13 @@ int main(
     // Create Participant object and run thread of publishing in loop
     DiscoveryServerParticipant part;
     if (part.init(
-            listening_port,
-            listening_address,
-            listening_id,
-            connection_port,
-            connection_address,
-            connection_id,
-            backup))
+                listening_port,
+                listening_address,
+                listening_id,
+                connection_port,
+                connection_address,
+                connection_id,
+                backup))
     {
         part.run(time);
     }
