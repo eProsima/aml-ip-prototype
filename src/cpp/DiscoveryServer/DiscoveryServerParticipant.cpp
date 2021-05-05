@@ -51,6 +51,7 @@ DiscoveryServerParticipant::DiscoveryServerParticipant()
 bool DiscoveryServerParticipant::init(
         int tcp_port,
         std::string address,
+        int id,
         bool backup)
 {
     // Set internal variables for print propouse
@@ -79,8 +80,9 @@ bool DiscoveryServerParticipant::init(
         pqos.wire_protocol().builtin.discovery_config.discoveryProtocol = DiscoveryProtocol::SERVER;
     }
 
-    // Set guid manually
+    // Set guid manually depending on the id
     std::istringstream(SERVER_DEFAULT_GUID) >> pqos.wire_protocol().prefix;
+    pqos.wire_protocol().prefix.value[GuidPrefix_t::size - 1] = static_cast<unsigned char>(id);
 
     // TCP configuration
     if (tcp_port != -1)
