@@ -130,10 +130,13 @@ enum  optionIndex
 {
     UNKNOWN_OPT,
     HELP,
-    TCP_PORT,
-    ADDRESS,
+    LISTENING_ADDRESS,
+    LISTENING_PORT,
+    LISTENING_ID,
+    CONNECTION_ADDRESS,
+    CONNECTION_PORT,
+    CONNECTION_ID,
     TIME,
-    ID,
     BACKUP
 };
 
@@ -146,15 +149,21 @@ const option::Descriptor usage[] = {
       "Set IP address and listening ports.\nTo use WAN connection TCP port must be open from router.\n" \
       "The default FastDDS transports are available.\nGeneral options:" },
     { HELP,    0, "h", "help",                   Arg::None,      "  -h \t--help  \tProduce help message." },
-    { ADDRESS, 0, "a", "address",               Arg::String,
-      "  -a <address> \t--address=<address> \t Public IP address to connect from outside the LAN (Default '127.0.0.1')."},
-    { TCP_PORT, 0, "p", "port",                 Arg::Numeric,
-      "  -p <num> \t--port=<num> \tPort to listen as TCP server (Default 5100)."},
-    { ID, 0, "i", "id",                      Arg::Numeric,
-      "  -i <num>\t--id=<num> \tId of the Discovery Server to create the GUID (Default 0)."},
+    { LISTENING_ADDRESS, 0, "a", "listening-address",               Arg::String,
+      "  -a <address> \t--listening-address=<address> \t Public IP address to connect from outside the LAN (Default '127.0.0.1')."},
+    { LISTENING_PORT, 0, "p", "listening-port",                 Arg::Numeric,
+      "  -p <num> \t--listening-port=<num> \tPort to listen as TCP server (Default 5100)."},
+    { LISTENING_ID, 0, "i", "listening-id",                      Arg::Numeric,
+      "  -i <num>\t--listening-id=<num> \tId of the Discovery Server to create the GUID (Default 0)."},
+    { CONNECTION_ADDRESS, 0, "", "connection-address",               Arg::String,
+      "  --connection-address=<address> \t IP address to connect with other Discovery Server. Set to remotely connection"},
+    { CONNECTION_PORT, 0, "", "connection-port",                 Arg::Numeric,
+      "  --connection-port=<num> \tPort to connect with another Discovery Server (Default 5100)."},
+    { CONNECTION_ID, 0, "", "connection-id",                      Arg::Numeric,
+      "  --connection-id=<num> \tId of the Discovery Server to connet remotely (set the GUID) (Default 0)."},
     { TIME, 0, "t", "time",                      Arg::Numeric,
       "  -t <num>\t--time=<num> \tTime in seconds until the server closes, if 0 wait for user input (Default 0)."},
-    { BACKUP, 0, "b", "tbackupme",              Arg::None,
+    { BACKUP, 0, "b", "backup",              Arg::None,
       "  -b \t--backup \tSet Discovery Server as Backup. Use only for debug purpose and erase old db before execute."},
     { 0, 0, 0, 0, 0, 0 }
 };
@@ -182,11 +191,14 @@ int main(
 #endif // if defined(_WIN32)
 
     // Get executable arguments
-    int tcp_port = 5100;
     uint32_t time = 0;
-    std::string address("127.0.0.1");
+    int listening_port = 5100;
+    std::string listening_address("127.0.0.1");
+    int listening_id = 0;
+    int connection_port = 5100;
+    std::string connection_address("");
+    int connection_id = 0;
     bool backup = false;
-    int id = 0;
 
     // No required arguments
     if (argc > 0)
@@ -221,16 +233,28 @@ int main(
                     return 0;
                     break;
 
-                case TCP_PORT:
-                    tcp_port = std::strtol(opt.arg, nullptr, 10);
+                case LISTENING_PORT:
+                    listening_port = std::strtol(opt.arg, nullptr, 10);
                     break;
 
-                case ADDRESS:
-                    address = opt.arg;
+                case LISTENING_ADDRESS:
+                    listening_address = opt.arg;
                     break;
 
-                case ID:
-                    id = std::strtol(opt.arg, nullptr, 10);
+                case LISTENING_ID:
+                    listening_id = std::strtol(opt.arg, nullptr, 10);
+                    break;
+
+                case CONNECTION_PORT:
+                    connection_port = std::strtol(opt.arg, nullptr, 10);
+                    break;
+
+                case CONNECTION_ADDRESS:
+                    connection_address = opt.arg;
+                    break;
+
+                case CONNECTION_ID:
+                    connection_id = std::strtol(opt.arg, nullptr, 10);
                     break;
 
                 case TIME:
@@ -255,7 +279,7 @@ int main(
     }
 
     // Public Address must be specified
-    if (address == "")
+    if (listening_address == "")
     {
         std::cout << "CLI error: Public IP address must be specified" << std::endl;
         option::printUsage(fwrite, stdout, usage, columns);
@@ -264,7 +288,14 @@ int main(
 
     // Create Participant object and run thread of publishing in loop
     DiscoveryServerParticipant part;
-    if (part.init(tcp_port, address, id, backup))
+    if (part.init(
+            listening_port,
+            listening_address,
+            listening_id,
+            connection_port,
+            connection_address,
+            connection_id,
+            backup))
     {
         part.run(time);
     }
