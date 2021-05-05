@@ -50,6 +50,7 @@ public:
     bool init(
             int tcp_port,
             std::string address,
+            int id,
             bool backup);
 
     //!Run for number samples

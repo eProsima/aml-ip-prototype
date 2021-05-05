@@ -54,7 +54,8 @@ bool DLParticipant::init(
         int connection_port,
         std::string connection_address,
         int listening_port,
-        std::string listening_address)
+        std::string listening_address,
+        int ds_id)
 {
     // Load profiles
     eprosima::fastrtps::xmlparser::XMLProfileManager::loadDefaultXMLFile();
@@ -74,6 +75,7 @@ bool DLParticipant::init(
     // Set Server guid manually
     RemoteServerAttributes server_attr;
     server_attr.ReadguidPrefix(SERVER_DEFAULT_GUID);
+    server_attr.guidPrefix.value[GuidPrefix_t::size - 1] = static_cast<unsigned char>(ds_id);
 
     // TCP server configuration
     if (listening_port != -1)

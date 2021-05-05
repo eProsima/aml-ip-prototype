@@ -133,6 +133,7 @@ enum  optionIndex
     TCP_PORT,
     ADDRESS,
     TIME,
+    ID,
     BACKUP
 };
 
@@ -149,6 +150,8 @@ const option::Descriptor usage[] = {
       "  -a <address> \t--address=<address> \t Public IP address to connect from outside the LAN (Default '127.0.0.1')."},
     { TCP_PORT, 0, "p", "port",                 Arg::Numeric,
       "  -p <num> \t--port=<num> \tPort to listen as TCP server (Default 5100)."},
+    { ID, 0, "i", "id",                      Arg::Numeric,
+      "  -i <num>\t--id=<num> \tId of the Discovery Server to create the GUID (Default 0)."},
     { TIME, 0, "t", "time",                      Arg::Numeric,
       "  -t <num>\t--time=<num> \tTime in seconds until the server closes, if 0 wait for user input (Default 0)."},
     { BACKUP, 0, "b", "tbackupme",              Arg::None,
@@ -183,6 +186,7 @@ int main(
     uint32_t time = 0;
     std::string address("127.0.0.1");
     bool backup = false;
+    int id = 0;
 
     // No required arguments
     if (argc > 0)
@@ -225,6 +229,10 @@ int main(
                     address = opt.arg;
                     break;
 
+                case ID:
+                    id = std::strtol(opt.arg, nullptr, 10);
+                    break;
+
                 case TIME:
                     time = std::strtol(opt.arg, nullptr, 10);
                     break;
@@ -256,7 +264,7 @@ int main(
 
     // Create Participant object and run thread of publishing in loop
     DiscoveryServerParticipant part;
-    if (part.init(tcp_port, address, backup))
+    if (part.init(tcp_port, address, id, backup))
     {
         part.run(time);
     }
