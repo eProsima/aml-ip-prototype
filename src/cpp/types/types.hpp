@@ -20,7 +20,12 @@
 #ifndef TYPES_TYPES_HPP
 #define TYPES_TYPES_HPP
 
-#define SERVER_DEFAULT_GUID "01.0f.41.4c.47.45.42.52.41.49.43.00"
+#include <sstream>
+
+#include <fastdds/rtps/common/GuidPrefix_t.hpp>
+
+#define SERVER_DEFAULT_GUID "01.0f.00.41.4c.47.45.42.52.41.49.43"
+#define SERVER_DEFAULT_GUID_ID_INDEX 2
 #define DEFAULT_DOMAIN 11
 
 constexpr const char* DL_TOPIC = "_aml_ip_topic_dloutput";
@@ -28,5 +33,13 @@ constexpr const char* ENGINE_TOPIC = "_aml_ip_topic_atomization";
 
 constexpr const char* DL_TOPIC_TYPE = "AML_IP_DLOutput";
 constexpr const char* ENGINE_TOPIC_TYPE = "AML_IP_Atomization";
+
+inline eprosima::fastrtps::rtps::GuidPrefix_t guid_server(int id)
+{
+    eprosima::fastrtps::rtps::GuidPrefix_t guid;
+    std::istringstream(SERVER_DEFAULT_GUID) >> guid;
+    guid.value[SERVER_DEFAULT_GUID_ID_INDEX] = static_cast<unsigned char>(id);
+    return guid;
+}
 
 #endif // TYPES_TYPES_HPP
