@@ -1,0 +1,10 @@
+
+struct AML_IP_Atom
+{
+	sequence<unsigned long> ucs;
+};
+
+struct AML_IP_Atomization
+{
+	sequence<AML_IP_Atom> atoms;
+};
