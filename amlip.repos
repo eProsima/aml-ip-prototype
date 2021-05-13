@@ -21,9 +21,13 @@ repositories:
         version: master
     amlip:
         type: git
-        url: https://github.com/eProsima/aml-ip-prototype
-        version: feature/prototype
+        url: https://github.com/eProsima/aml-ip-prototype.git
+        version: feature/several-ds
     discovery-server:
         type: git
         url: https://github.com/eProsima/Discovery-Server
         version: 7a2b8e6cb907d97dc5c67a7de037b930c9fbf04b
+    cpp-upnp:
+        type: git
+        url: https://github.com/jparisu/cpp-upnp.git
+        version: feature/add-port-mapping
