@@ -47,8 +47,7 @@ public:
             int connection_port,
             std::string connection_address,
             int listening_port,
-            std::string listening_address,
-            int ds_id);
+            std::string listening_address);
 
     //!Publish a sample
     bool publish(

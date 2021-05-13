@@ -48,12 +48,8 @@ public:
 
     //!Initialize
     bool init(
-            int listening_port,
-            std::string listening_address,
-            int listening_id,
-            int connection_port,
-            std::string connection_address,
-            int connection_id,
+            int tcp_port,
+            std::string address,
             bool backup);
 
     //!Run for number samples
@@ -73,8 +69,6 @@ private:
     DiscoveryServerListener* listener_;
 
     int tcp_port_;
-
-    eprosima::fastrtps::rtps::GuidPrefix_t server_guid_;
 };
 
 class DiscoveryServerListener : public eprosima::fastdds::dds::DomainParticipantListener

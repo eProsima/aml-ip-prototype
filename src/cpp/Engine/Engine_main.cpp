@@ -137,8 +137,7 @@ enum  optionIndex
     CONNECTION_PORT,
     CONNECTION_ADDRESS,
     LISTENING_PORT,
-    LISTENING_ADDRESS,
-    ID
+    LISTENING_ADDRESS
 };
 
 /*
@@ -167,8 +166,6 @@ const option::Descriptor usage[] = {
       "  --listening-port=<num> \tPort to listen as TCP server. -1 to set as TCP client (Default: -1)."},
     { LISTENING_ADDRESS, 0, "", "listening-address",             Arg::String,
       "  --listening-address=<address> \tIP address to listen as TCP server (Default: '')."},
-    { ID, 0, "i", "id",                      Arg::Numeric,
-      "  -i <num>\t--id=<num> \tId of the Discovery Server to connect (change the DS GUID) (Default 0)."},
     { 0, 0, 0, 0, 0, 0 }
 };
 
@@ -202,7 +199,6 @@ int main(
     std::string connection_address("127.0.0.1");
     int listening_port = -1;
     std::string listening_address("");
-    int ds_id;
 
     // No required arguments
     if (argc > 0)
@@ -265,10 +261,6 @@ int main(
                     listening_address = opt.arg;
                     break;
 
-                case ID:
-                    ds_id = std::strtol(opt.arg, nullptr, 10);
-                    break;
-
                 case UNKNOWN_OPT:
                     option::printUsage(fwrite, stdout, usage, columns);
                     return 1;
@@ -295,7 +287,7 @@ int main(
 
     // Create Participant object and run thread of publishing in loop
     EngineParticipant part;
-    if (part.init(connection_port, connection_address, listening_port, listening_address, ds_id))
+    if (part.init(connection_port, connection_address, listening_port, listening_address))
     {
         part.run(samples, period, data_size);
     }

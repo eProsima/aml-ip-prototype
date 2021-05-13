@@ -54,8 +54,7 @@ bool DLParticipant::init(
         int connection_port,
         std::string connection_address,
         int listening_port,
-        std::string listening_address,
-        int ds_id)
+        std::string listening_address)
 {
     // Load profiles
     eprosima::fastrtps::xmlparser::XMLProfileManager::loadDefaultXMLFile();
@@ -71,6 +70,10 @@ bool DLParticipant::init(
 
     // Set as a client
     pqos.wire_protocol().builtin.discovery_config.discoveryProtocol = DiscoveryProtocol::CLIENT;
+
+    // Set Server guid manually
+    RemoteServerAttributes server_attr;
+    server_attr.ReadguidPrefix(SERVER_DEFAULT_GUID);
 
     // TCP server configuration
     if (listening_port != -1)
@@ -94,10 +97,6 @@ bool DLParticipant::init(
 
         pqos.transport().user_transports.push_back(descriptor);
     }
-
-    // Set Server guid manually
-    RemoteServerAttributes server_attr;
-    server_attr.guidPrefix = guid_server(ds_id);
 
     // Discovery server locator configuration TCP
     Locator_t tcp_locator;
