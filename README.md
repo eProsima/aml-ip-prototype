@@ -178,37 +178,67 @@ source install/setup.bash
 ./install/amlip/bin/AML_IP_Engine --connection-address=${ROUTER_1_IP} --connection-port=${PORT_1} --listening-address=${ROUTER_3_IP} --listening-port=${PORT_3}
 ```
 
+<<<<<<< HEAD
 ### Multiple DS in WAN
 
 In this example there are multiple discovery servers that will interconnect.
 One host will work as middle well known address, and the other two hosts will start a Discovery Server in each host that connects with the first one
 One host will execute a DL node and the other an Engine node.
 Ports `${PORT_2_x}` and `${PORT_3_x}` are any free port in host 2 and 3 respectively.
+=======
+### UPnP and Multiple DS in WAN
+
+Each host will have a Discovery Server running with forwarded ports using upnp, and will connect to a central Discovery Server.
+The ports using in this example are not the same as the one established in the architecture, as UPnP allows to change them dynamically and it does not need to be forwarded beforehand.
+Be careful that the port forwarding will only be set for `60` seconds as it is established in the commands below with that parameter
+>>>>>>> 151ea5a... add UPnP repo to .repos
 
 ```sh
 # Central Discovery Server Node
 # Host-1
+<<<<<<< HEAD
 source install/setup.bash
 ./install/amlip/bin/AML_IP_DiscoveryServer --listening-address=${ROUTER_1_IP} --listening-port=${PORT_1} --listening-id=1 --time 60
+=======
+./build/cppupnp/example/port-forwarding -l ${PORT_1_x} -p ${PORT_1_x} -t 60 -d "amlip ds port forwarding"
+
+source install/setup.bash
+./install/amlip/bin/AML_IP_DiscoveryServer --time 60 --listening-address=${ROUTER_1_IP} --listening-port=${PORT_1_x} --listening-id=1
+>>>>>>> 151ea5a... add UPnP repo to .repos
 ```
 
 ```sh
 # Discovery Server Node
 # Host-2
+<<<<<<< HEAD
 source install/setup.bash
 ./install/amlip/bin/AML_IP_DiscoveryServer --listening-address="127.0.0.1"  --listening-port=${PORT_2_x} --listening-id=2 --connection-address=${ROUTER_1_IP} --connection-port=${PORT_1} --connection-id=1 --time 60
+=======
+./build/cppupnp/example/port-forwarding -l ${PORT_2_x_1} -p ${PORT_2_x_1} -t 60 -d "amlip ds port forwarding"
+
+source install/setup.bash
+./install/amlip/bin/AML_IP_DiscoveryServer --listening-address=${ROUTER_2_IP} --listening-port=${PORT_2_x_1} --listening-id=2 --connection-address=${ROUTER_1_IP} --connection-port=${PORT_1_x} --connection-id=1 --time 60
+>>>>>>> 151ea5a... add UPnP repo to .repos
 ```
 
 ```sh
 # DL Node
 # Host-2
+<<<<<<< HEAD
 source install/setup.bash
 ./install/amlip/bin/AML_IP_DL --connection-address="127.0.0.1" --connection-port=${PORT_2_x} --listening-address=${ROUTER_2_IP} --listening-port=${PORT_2} -l 50 -s 6 -p 5 --id=2
+=======
+./build/cppupnp/example/port-forwarding -l ${PORT_2_x_2} -p ${PORT_2_x_2} -t 60 -d "amlip ds port forwarding"
+
+source install/setup.bash
+./install/amlip/bin/AML_IP_DL --connection-address="127.0.0.1" --connection-port=${PORT_2_x_1} --listening-address=${ROUTER_2_IP} --listening-port=${PORT_2_x_2} --id=2 -l 20 -s 17 -p 3
+>>>>>>> 151ea5a... add UPnP repo to .repos
 ```
 
 ```sh
 # Discovery Server Node
 # Host-3
+<<<<<<< HEAD
 source install/setup.bash
 ./install/amlip/bin/AML_IP_DiscoveryServer --listening-address="127.0.0.1"  --listening-port=${PORT_3_x} --listening-id=3 --connection-address=${ROUTER_1_IP} --connection-port=${PORT_1} --connection-id=1 --time 60
 ```
@@ -218,6 +248,12 @@ source install/setup.bash
 # Host-3
 source install/setup.bash
 ./install/amlip/bin/AML_IP_DL --connection-address="127.0.0.1" --connection-port=${PORT_3_x} --listening-address=${ROUTER_3_IP} --listening-port=${PORT_3} -l 20 -s 10 -p 3 --id=3
+=======
+./build/cppupnp/example/port-forwarding -l ${PORT_2_x_1} -p ${PORT_2_x_1} -t 60 -d "amlip ds port forwarding"
+
+source install/setup.bash
+./install/amlip/bin/AML_IP_DiscoveryServer --listening-address=${ROUTER_2_IP} --listening-port=${PORT_2_x_1} --listening-id=2 --connection-address=${ROUTER_1_IP} --connection-port=${PORT_1_x} --connection-id=1 --time 60
+>>>>>>> 151ea5a... add UPnP repo to .repos
 ```
 
 More nodes could be added to the communication network, but remember that they must configure the portforwarding in their routers to be able to receive data.

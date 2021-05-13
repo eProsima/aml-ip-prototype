@@ -17,5 +17,14 @@ repositories:
         version: master
     amlip:
         type: git
+<<<<<<< HEAD
         url: https://github.com/eProsima/aml-ip-prototype
         version: main
+=======
+        url: https://github.com/eProsima/aml-ip-prototype.git
+        version: main
+    cpp-upnp:
+        type: git
+        url: https://github.com/jparisu/cpp-upnp.git
+        version: feature/add-port-mapping
+>>>>>>> 151ea5a... add UPnP repo to .repos
