@@ -243,5 +243,4 @@ source install/setup.bash
 ## Prototype limits
 
 1. Data sent is randomly generated, with no real meaning for an AML execution.
-1. It is only available to connect each node to a single Discovery Server.
 1. *TCP* version only allows to connect two nodes.

@@ -87,35 +87,11 @@ bool DiscoveryServerParticipant::init(
     pqos.wire_protocol().prefix = guid_server(id);
     server_guid_ = pqos.wire_protocol().prefix;
 
-    // Set the remote servers
-    if (connection_address != "")
-    {
-        // Add every connection address as server
-        for (auto address : split_ds_locator(connection_address))
-        {
-            // Set Server guid manually
-            RemoteServerAttributes server_attr;
-            server_attr.guidPrefix = guid_server(std::get<2>(address));
-
-            // Discovery server locator configuration TCP
-            Locator_t tcp_locator;
-            tcp_locator.kind = LOCATOR_KIND_TCPv4;
-            IPLocator::setIPv4(tcp_locator, std::get<0>(address));
-            IPLocator::setLogicalPort(tcp_locator, std::get<1>(address));
-            IPLocator::setPhysicalPort(tcp_locator, std::get<1>(address));
-            server_attr.metatrafficUnicastLocatorList.push_back(tcp_locator);
-
-            pqos.wire_protocol().builtin.discovery_config.m_DiscoveryServers.push_back(server_attr);
-        }
-    }
-
     // Listening configuration
     for (auto address : split_locator(listening_address))
     {
         // Create TCPv4 transport
         std::shared_ptr<TCPv4TransportDescriptor> descriptor = std::make_shared<TCPv4TransportDescriptor>();
-
-        //descriptor->wait_for_tcp_negotiation = false;
 
         descriptor->add_listener_port(std::get<1>(address));
         descriptor->set_WAN_address(std::get<0>(address));
@@ -135,6 +111,24 @@ bool DiscoveryServerParticipant::init(
         IPLocator::setPhysicalPort(tcp_locator, std::get<1>(address));
 
         pqos.wire_protocol().builtin.metatrafficUnicastLocatorList.push_back(tcp_locator);
+    }
+
+    // Add every connection address as server
+    for (auto address : split_ds_locator(connection_address))
+    {
+        // Set Server guid manually
+        RemoteServerAttributes server_attr;
+        server_attr.guidPrefix = guid_server(std::get<2>(address));
+
+        // Discovery server locator configuration TCP
+        Locator_t tcp_locator;
+        tcp_locator.kind = LOCATOR_KIND_TCPv4;
+        IPLocator::setIPv4(tcp_locator, std::get<0>(address));
+        IPLocator::setLogicalPort(tcp_locator, std::get<1>(address));
+        IPLocator::setPhysicalPort(tcp_locator, std::get<1>(address));
+        server_attr.metatrafficUnicastLocatorList.push_back(tcp_locator);
+
+        pqos.wire_protocol().builtin.discovery_config.m_DiscoveryServers.push_back(server_attr);
     }
 
     listener_ = new DiscoveryServerListener();
@@ -166,8 +160,10 @@ void DiscoveryServerParticipant::run(
     {
         std::cout << "DiscoveryServer Participant " << participant_->guid().guidPrefix << std::endl
                   << " with id " << id_ << " and GUID " << server_guid_ << std::endl
-                  << " listening in addresses '" << listening_address_ << "'" << std::endl
-                  << " connecting with servers in addresses '" << connection_address_ << "'" << std::endl
+                  << " listening in addresses: " << std::endl
+                  << print_locator(listening_address_).get() // << std::endl // added in print_locator
+                  << " connecting with servers in addresses " << std::endl
+                  << print_ds_locator(connection_address_).get() // << std::endl // added in print_locator
                   << "Please press enter to stop it at any time." << std::endl;
         std::cin.ignore();
     }
@@ -175,8 +171,10 @@ void DiscoveryServerParticipant::run(
     {
         std::cout << "DiscoveryServer Participant " << participant_->guid().guidPrefix << std::endl
                   << " with id " << id_ << " and GUID " << server_guid_ << std::endl
-                  << " listening in addresses '" << listening_address_ << "'" << std::endl
-                  << " connecting with servers in addresses '" << connection_address_ << "'" << std::endl
+                  << " listening in addresses: " << std::endl
+                  << print_locator(listening_address_).get() // << std::endl // added in print_locator
+                  << " connecting with servers in addresses " << std::endl
+                  << print_ds_locator(connection_address_).get() // << std::endl // added in print_locator
                   << " for " << time << " seconds." << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(time));
     }
