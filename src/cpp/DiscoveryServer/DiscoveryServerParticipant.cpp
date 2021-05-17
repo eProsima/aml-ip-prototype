@@ -31,9 +31,10 @@
 #include <fastdds/rtps/transport/UDPv4TransportDescriptor.h>
 #include <fastrtps/utils/IPLocator.h>
 
-#include <stdlib.h>
 #include <atomic>
+#include <stdlib.h>
 #include <sstream>
+#include <tuple>
 
 using namespace eprosima::fastdds::dds;
 using namespace eprosima::fastdds::rtps;
@@ -42,25 +43,23 @@ using namespace eprosima::fastrtps::rtps;
 
 DiscoveryServerParticipant::DiscoveryServerParticipant()
     : participant_(nullptr)
-    , address_("")
+    , listening_address_("")
+    , connection_address_("")
     , listener_(nullptr)
-    , tcp_port_(0)
     , server_guid_(GuidPrefix_t::unknown())
 {
 }
 
 bool DiscoveryServerParticipant::init(
-        int listening_port,
         std::string listening_address,
-        int listening_id,
-        int connection_port,
         std::string connection_address,
-        int connection_id,
+        uint16_t id,
         bool backup)
 {
-    // Set internal variables for print propouse
-    tcp_port_ = listening_port;
-    address_ = listening_address;
+    // Store info for printing
+    listening_address_ = listening_address;
+    connection_address_ = connection_address;
+    id_ = id;
 
     // Load profiles
     eprosima::fastrtps::xmlparser::XMLProfileManager::loadDefaultXMLFile();
@@ -85,37 +84,41 @@ bool DiscoveryServerParticipant::init(
     }
 
     // Set guid manually depending on the id
-    pqos.wire_protocol().prefix = guid_server(listening_id);
+    pqos.wire_protocol().prefix = guid_server(id);
     server_guid_ = pqos.wire_protocol().prefix;
 
     // Set the remote servers
     if (connection_address != "")
     {
-        // Set Server guid manually
-        RemoteServerAttributes server_attr;
-        server_attr.guidPrefix = guid_server(connection_id);
+        // Add every connection address as server
+        for (auto address : split_ds_locator(connection_address))
+        {
+            // Set Server guid manually
+            RemoteServerAttributes server_attr;
+            server_attr.guidPrefix = guid_server(std::get<2>(address));
 
-        // Discovery server locator configuration TCP
-        Locator_t tcp_locator;
-        tcp_locator.kind = LOCATOR_KIND_TCPv4;
-        IPLocator::setIPv4(tcp_locator, connection_address);
-        IPLocator::setLogicalPort(tcp_locator, connection_port);
-        IPLocator::setPhysicalPort(tcp_locator, connection_port);
-        server_attr.metatrafficUnicastLocatorList.push_back(tcp_locator);
+            // Discovery server locator configuration TCP
+            Locator_t tcp_locator;
+            tcp_locator.kind = LOCATOR_KIND_TCPv4;
+            IPLocator::setIPv4(tcp_locator, std::get<0>(address));
+            IPLocator::setLogicalPort(tcp_locator, std::get<1>(address));
+            IPLocator::setPhysicalPort(tcp_locator, std::get<1>(address));
+            server_attr.metatrafficUnicastLocatorList.push_back(tcp_locator);
 
-        pqos.wire_protocol().builtin.discovery_config.m_DiscoveryServers.push_back(server_attr);
+            pqos.wire_protocol().builtin.discovery_config.m_DiscoveryServers.push_back(server_attr);
+        }
     }
 
-    // TCP configuration
-    if (listening_port != -1)
+    // Listening configuration
+    for (auto address : split_locator(listening_address))
     {
         // Create TCPv4 transport
         std::shared_ptr<TCPv4TransportDescriptor> descriptor = std::make_shared<TCPv4TransportDescriptor>();
 
         //descriptor->wait_for_tcp_negotiation = false;
 
-        descriptor->add_listener_port(listening_port);
-        descriptor->set_WAN_address(listening_address);
+        descriptor->add_listener_port(std::get<1>(address));
+        descriptor->set_WAN_address(std::get<0>(address));
 
         descriptor->sendBufferSize = 0;
         descriptor->receiveBufferSize = 0;
@@ -126,10 +129,10 @@ bool DiscoveryServerParticipant::init(
         Locator_t tcp_locator;
         tcp_locator.kind = LOCATOR_KIND_TCPv4;
 
-        IPLocator::setIPv4(tcp_locator, listening_address);
-        IPLocator::setWan(tcp_locator, listening_address);
-        IPLocator::setLogicalPort(tcp_locator, listening_port);
-        IPLocator::setPhysicalPort(tcp_locator, listening_port);
+        IPLocator::setIPv4(tcp_locator, std::get<0>(address));
+        IPLocator::setWan(tcp_locator, std::get<0>(address));
+        IPLocator::setLogicalPort(tcp_locator, std::get<1>(address));
+        IPLocator::setPhysicalPort(tcp_locator, std::get<1>(address));
 
         pqos.wire_protocol().builtin.metatrafficUnicastLocatorList.push_back(tcp_locator);
     }
@@ -161,16 +164,19 @@ void DiscoveryServerParticipant::run(
 {
     if (time == 0)
     {
-        std::cout << "DiscoveryServer Participant " << participant_->guid().guidPrefix
-                  << " running in address " << address_ << " port " << tcp_port_
-                  << " with GUID " << server_guid_ << std::endl
+        std::cout << "DiscoveryServer Participant " << participant_->guid().guidPrefix << std::endl
+                  << " with id " << id_ << " and GUID " << server_guid_ << std::endl
+                  << " listening in addresses '" << listening_address_ << "'" << std::endl
+                  << " connecting with servers in addresses '" << connection_address_ << "'" << std::endl
                   << "Please press enter to stop it at any time." << std::endl;
         std::cin.ignore();
     }
     else
     {
-        std::cout << "DiscoveryServer Participant " << participant_->guid().guidPrefix
-                  << " running in address " << address_ << " port " << tcp_port_
+        std::cout << "DiscoveryServer Participant " << participant_->guid().guidPrefix << std::endl
+                  << " with id " << id_ << " and GUID " << server_guid_ << std::endl
+                  << " listening in addresses '" << listening_address_ << "'" << std::endl
+                  << " connecting with servers in addresses '" << connection_address_ << "'" << std::endl
                   << " for " << time << " seconds." << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(time));
     }

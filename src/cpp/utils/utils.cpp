@@ -18,6 +18,7 @@
  */
 
 #include <sstream>
+#include <iostream>
 
 #include "utils.hpp"
 
@@ -101,4 +102,106 @@ std::ostream& operator <<(
 {
     output << "<Number of relations: " << data.relations().size() << ">";
     return output;
+}
+
+std::vector<std::pair<std::string, uint16_t>> split_locator(std::string addresses, std::string value_delimiter, std::string address_delimiter)
+{
+    std::vector<std::pair<std::string, uint16_t>> result;
+
+    size_t pos_ini = 0;
+    size_t pos = 0;
+    std::string token;
+
+    if (addresses.find(address_delimiter) == std::string::npos)
+    {
+        // get address ip
+        std::string ip = addresses.substr(0, addresses.find(value_delimiter));
+
+        // get port
+        uint16_t port = std::stol(addresses.substr(ip.length()+1));
+
+        result.push_back(std::make_pair(ip, port));
+
+        return result;
+    }
+
+    do
+    {
+        pos = addresses.find(address_delimiter, pos_ini);
+
+        token = addresses.substr(pos_ini, pos - pos_ini);
+
+        // get address ip
+        std::string ip = addresses.substr(pos_ini, token.find(value_delimiter));
+
+        // get port
+        uint16_t port = std::stol(token.substr(ip.length()+1));
+
+        result.push_back(std::make_pair(ip, port));
+        pos_ini = pos + 1;
+
+    }while (pos != std::string::npos);
+
+    return result;
+}
+
+std::vector<std::tuple<std::string, uint16_t, uint16_t>> split_ds_locator(std::string addresses, std::string value_delimiter, std::string address_delimiter)
+{
+    std::vector<std::tuple<std::string, uint16_t, uint16_t>> result;
+
+    size_t pos_ini = 0;
+    size_t pos = 0;
+    std::string token;
+
+    size_t first_delimiter_pos = 0;
+    size_t second_delimiter_pos = 0;
+
+    std::cout << addresses << std::endl;
+
+    if (addresses.find(address_delimiter) == std::string::npos)
+    {
+        first_delimiter_pos = addresses.find(value_delimiter);
+        second_delimiter_pos = addresses.find(value_delimiter, first_delimiter_pos+1);
+
+        std::cout << first_delimiter_pos << " and " << second_delimiter_pos << std::endl;
+
+        // get address ip
+        std::string ip = addresses.substr(0, first_delimiter_pos);
+
+        // get port
+        uint16_t port = std::stol(addresses.substr(first_delimiter_pos+1, second_delimiter_pos));
+
+        // get id
+        uint16_t id = std::stol(addresses.substr(second_delimiter_pos+1));
+
+        result.push_back(std::make_tuple(ip, port, id));
+
+        return result;
+    }
+
+    do
+    {
+
+        pos = addresses.find(address_delimiter, pos_ini);
+
+        token = addresses.substr(pos_ini, pos - pos_ini);
+
+        first_delimiter_pos = token.find(value_delimiter);
+        second_delimiter_pos = token.find(value_delimiter, first_delimiter_pos+1);
+
+        // get address ip
+        std::string ip = token.substr(0, first_delimiter_pos);
+
+        // get port
+        uint16_t port = std::stol(token.substr(first_delimiter_pos+1, second_delimiter_pos));
+
+        // get id
+        uint16_t id = std::stol(token.substr(second_delimiter_pos+1));
+
+        result.push_back(std::make_tuple(ip, port, id));
+        pos_ini = pos + 1;
+
+    }while (pos != std::string::npos);
+
+    return result;
 }
