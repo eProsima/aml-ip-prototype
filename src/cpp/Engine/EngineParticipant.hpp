@@ -50,9 +50,7 @@ public:
 
     //!Initialize
     bool init(
-            int connection_port,
             std::string connection_address,
-            int listening_port,
             std::string listening_address);
 
     //!Publish a sample

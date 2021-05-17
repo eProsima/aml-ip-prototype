@@ -5,6 +5,9 @@ a distributed independent AML network along the internet.
 The following repository store the first prototype that represents a MockUp of AML Nodes and could be use
 as an example of the communication process between nodes using Fast DDS communciation.
 
+## Requirements
+
+> :warning: cppupnp requires `Boost 1.71`.
 ## Installation Instructions
 
 Set `${WORKSPACE_PATH}` environmental variable for the path AML-IP workspace.
@@ -66,7 +69,7 @@ source install/setup.bash
 
 ## Executing Examples
 
-It is assummed that the user have a network architecture similar to the one desribed ahead to execute the examples correctly:
+It is assummed that the user have a network architecture similar to the one described below to execute the examples correctly:
 
 1. 3 different and independent NATs (under different routers or wifi connections).
 1. 4 different machines, 2 under the first NAT and 2 in the other two NATs.
@@ -178,6 +181,48 @@ source install/setup.bash
 ./install/amlip/bin/AML_IP_Engine --connection-address=${ROUTER_1_IP} --connection-port=${PORT_1} --listening-address=${ROUTER_3_IP} --listening-port=${PORT_3}
 ```
 
+### Multiple DS in WAN
+
+In this example there are multiple discovery servers that will interconnect.
+One host will work as middle well known address, and the other two hosts will start a Discovery Server in each host that connects with the first one
+One host will execute a DL node and the other an Engine node.
+Ports `${PORT_2_x}` and `${PORT_3_x}` are any free port in host 2 and 3 respectively.
+
+```sh
+# Central Discovery Server Node
+# Host-1
+source install/setup.bash
+./install/amlip/bin/AML_IP_DiscoveryServer --listening-address=${ROUTER_1_IP} --listening-port=${PORT_1} --listening-id=1 --time 60
+```
+
+```sh
+# Discovery Server Node
+# Host-2
+source install/setup.bash
+./install/amlip/bin/AML_IP_DiscoveryServer --listening-address="127.0.0.1"  --listening-port=${PORT_2_x} --listening-id=2 --connection-address=${ROUTER_1_IP} --connection-port=${PORT_1} --connection-id=1 --time 60
+```
+
+```sh
+# DL Node
+# Host-2
+source install/setup.bash
+./install/amlip/bin/AML_IP_DL --connection-address="127.0.0.1" --connection-port=${PORT_2_x} --listening-address=${ROUTER_2_IP} --listening-port=${PORT_2} -l 50 -s 6 -p 5 --id=2
+```
+
+```sh
+# Discovery Server Node
+# Host-3
+source install/setup.bash
+./install/amlip/bin/AML_IP_DiscoveryServer --listening-address="127.0.0.1"  --listening-port=${PORT_3_x} --listening-id=3 --connection-address=${ROUTER_1_IP} --connection-port=${PORT_1} --connection-id=1 --time 60
+```
+
+```sh
+# Engine Node
+# Host-3
+source install/setup.bash
+./install/amlip/bin/AML_IP_DL --connection-address="127.0.0.1" --connection-port=${PORT_3_x} --listening-address=${ROUTER_3_IP} --listening-port=${PORT_3} -l 20 -s 10 -p 3 --id=3
+```
+
 More nodes could be added to the communication network, but remember that they must configure the portforwarding in their routers to be able to receive data.
 
 ### TCP
@@ -198,9 +243,26 @@ source install/setup.bash
 ./install/amlip/bin/AML_IP_Engine_TCP --connection-address=${ROUTER_1_IP} --connection-port=${PORT_1} --listening-address=${ROUTER_2_IP} --listening-port=${PORT_2}
 ```
 
+### UPnP
+
+#### UPnP to this host
+
+In order to open a public router port `${LOGIC_PORT}` and forward it to the host that is executing upnp in port `${PHYSICAL_PORT}` during `${TIME}` seconds with descrciption `${DESCP}` use the command
+
+```sh
+./build/cppupnp/example/port-forwarding --logical-port ${LOGIC_PORT} --physical-port ${PHYSICAL_PORT} --time ${TIME} --description ${DESCP}
+```
+
+#### UPnP to this host
+
+In order to open a public router port `${LOGIC_PORT}` and forward it to internal address `${ADDRESS}` to port `${PHYSICAL_PORT}` during `${TIME}` seconds with descrciption `${DESCP}` use the command
+
+```sh
+./build/cppupnp/example/port-forwarding --logical-port ${LOGIC_PORT} --physical-port ${PHYSICAL_PORT} --time ${TIME} --description ${DESCP} --client ${ADDRESS}
+```
+
 ## Prototype limits
 
 1. Data sent is randomly generated, with no real meaning for an AML execution.
-1. It is only available to use one Discovery Server per network.
-    1. In the future several DS could connect to each other to create bigger and more robust networks.
 1. *TCP* version only allows to connect two nodes.
+

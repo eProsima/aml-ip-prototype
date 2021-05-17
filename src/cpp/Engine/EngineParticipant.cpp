@@ -61,63 +61,11 @@ EngineParticipant::EngineParticipant()
 }
 
 bool EngineParticipant::init(
-        int connection_port,
         std::string connection_address,
-        int listening_port,
         std::string listening_address)
 {
-    // Load profiles
-    eprosima::fastrtps::xmlparser::XMLProfileManager::loadDefaultXMLFile();
-    DomainParticipantFactory::get_instance()->load_profiles();
-
     //CREATE THE PARTICIPANT
-    DomainParticipantQos pqos = DomainParticipantFactory::get_instance()->get_default_participant_qos();
-
-    pqos.wire_protocol().builtin.discovery_config.leaseDuration = eprosima::fastrtps::c_TimeInfinite;
-    pqos.wire_protocol().builtin.discovery_config.leaseDuration_announcementperiod =
-            eprosima::fastrtps::Duration_t(2, 0);
-    pqos.name("Engine Participant");
-
-
-    // Set as a client
-    pqos.wire_protocol().builtin.discovery_config.discoveryProtocol = DiscoveryProtocol::CLIENT;
-
-    // Set Server guid manually
-    RemoteServerAttributes server_attr;
-    server_attr.ReadguidPrefix(SERVER_DEFAULT_GUID);
-
-    // TCP server configuration
-    if (listening_port != -1)
-    {
-        std::shared_ptr<TCPv4TransportDescriptor> descriptor = std::make_shared<TCPv4TransportDescriptor>();
-
-        descriptor->sendBufferSize = 0;
-        descriptor->receiveBufferSize = 0;
-
-        descriptor->add_listener_port(listening_port);
-        descriptor->set_WAN_address(listening_address);
-        pqos.transport().user_transports.push_back(descriptor);
-    }
-    else
-    {
-        // TCP client configuration
-        std::shared_ptr<TCPv4TransportDescriptor> descriptor = std::make_shared<TCPv4TransportDescriptor>();
-
-        descriptor->sendBufferSize = 0;
-        descriptor->receiveBufferSize = 0;
-
-        pqos.transport().user_transports.push_back(descriptor);
-    }
-
-    // Discovery server locator configuration TCP
-    Locator_t tcp_locator;
-    tcp_locator.kind = LOCATOR_KIND_TCPv4;
-    IPLocator::setIPv4(tcp_locator, connection_address);
-    IPLocator::setLogicalPort(tcp_locator, connection_port);
-    IPLocator::setPhysicalPort(tcp_locator, connection_port);
-    server_attr.metatrafficUnicastLocatorList.push_back(tcp_locator);
-
-    pqos.wire_protocol().builtin.discovery_config.m_DiscoveryServers.push_back(server_attr);
+    DomainParticipantQos pqos = get_node_qos("Engine Participant", connection_address, listening_address);
 
     participant_ = DomainParticipantFactory::get_instance()->create_participant(DEFAULT_DOMAIN, pqos);
 
@@ -126,7 +74,11 @@ bool EngineParticipant::init(
         return false;
     }
 
-    std::cout << "Engine Participant created with guid: " << participant_->guid().guidPrefix << std::endl;
+    std::cout << "Engine Participant created with guid: " << participant_->guid().guidPrefix << std::endl
+              << " listening in addresses: " << std::endl
+              << print_locator(listening_address) // << std::endl // added in print_locator
+              << " connecting with servers in addresses: " << std::endl
+              << print_ds_locator(connection_address); // << std::endl // added in print_locator
 
     //REGISTER THE TYPES
     dl_type_.register_type(participant_);
