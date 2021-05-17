@@ -74,7 +74,11 @@ bool EngineParticipant::init(
         return false;
     }
 
-    std::cout << "Engine Participant created with guid: " << participant_->guid().guidPrefix << std::endl;
+    std::cout << "Engine Participant created with guid: " << participant_->guid().guidPrefix << std::endl
+              << " listening in addresses: " << std::endl
+              << print_locator(listening_address) // << std::endl // added in print_locator
+              << " connecting with servers in addresses: " << std::endl
+              << print_ds_locator(connection_address); // << std::endl // added in print_locator
 
     //REGISTER THE TYPES
     dl_type_.register_type(participant_);

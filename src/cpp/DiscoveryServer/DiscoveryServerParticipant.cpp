@@ -161,9 +161,9 @@ void DiscoveryServerParticipant::run(
         std::cout << "DiscoveryServer Participant " << participant_->guid().guidPrefix << std::endl
                   << " with id " << id_ << " and GUID " << server_guid_ << std::endl
                   << " listening in addresses: " << std::endl
-                  << print_locator(listening_address_).get() // << std::endl // added in print_locator
-                  << " connecting with servers in addresses " << std::endl
-                  << print_ds_locator(connection_address_).get() // << std::endl // added in print_locator
+                  << print_locator(listening_address_) // << std::endl // added in print_locator
+                  << " connecting with servers in addresses: " << std::endl
+                  << print_ds_locator(connection_address_) // << std::endl // added in print_locator
                   << "Please press enter to stop it at any time." << std::endl;
         std::cin.ignore();
     }
@@ -172,9 +172,9 @@ void DiscoveryServerParticipant::run(
         std::cout << "DiscoveryServer Participant " << participant_->guid().guidPrefix << std::endl
                   << " with id " << id_ << " and GUID " << server_guid_ << std::endl
                   << " listening in addresses: " << std::endl
-                  << print_locator(listening_address_).get() // << std::endl // added in print_locator
-                  << " connecting with servers in addresses " << std::endl
-                  << print_ds_locator(connection_address_).get() // << std::endl // added in print_locator
+                  << print_locator(listening_address_) // << std::endl // added in print_locator
+                  << " connecting with servers in addresses: " << std::endl
+                  << print_ds_locator(connection_address_) // << std::endl // added in print_locator
                   << " for " << time << " seconds." << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(time));
     }
