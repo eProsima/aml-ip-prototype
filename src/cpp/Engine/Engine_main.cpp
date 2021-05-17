@@ -235,7 +235,7 @@ int main(
         columns = 80;
     }
 #else
-    columns = getenv("COLUMNS") ? atoi(getenv("COLUMNS")) : 80;
+    columns = getenv("COLUMNS") ? atoi(getenv("COLUMNS")) : 180;
 #endif // if defined(_WIN32)
 
     // Get executable arguments

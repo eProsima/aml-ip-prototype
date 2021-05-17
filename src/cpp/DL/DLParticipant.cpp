@@ -66,9 +66,9 @@ bool DLParticipant::init(
 
     std::cout << "DL Participant created with guid: " << participant_->guid().guidPrefix << std::endl
               << " listening in addresses: " << std::endl
-              << print_locator(listening_address).get() // << std::endl // added in print_locator
-              << " connecting with servers in addresses " << std::endl
-              << print_ds_locator(connection_address).get(); // << std::endl // added in print_locator
+              << print_locator(listening_address) // << std::endl // added in print_locator
+              << " connecting with servers in addresses: " << std::endl
+              << print_ds_locator(connection_address); // << std::endl // added in print_locator
 
     //REGISTER THE TYPE
     type_.register_type(participant_);

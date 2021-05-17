@@ -225,17 +225,17 @@ std::vector<std::tuple<std::string, uint16_t, uint16_t>> split_ds_locator(std::s
     return result;
 }
 
-std::stringstream print_locator(std::string addresses, std::string value_delimiter, std::string address_delimiter)
+std::string print_locator(std::string addresses, std::string value_delimiter, std::string address_delimiter)
 {
     std::stringstream result;
     for (auto locator : split_locator(addresses, value_delimiter, address_delimiter))
     {
         result << "IP: " << locator.first << "  port: " << locator.second << std::endl;
     }
-    return result;
+    return result.str();
 }
 
-std::stringstream print_ds_locator(std::string addresses, std::string value_delimiter, std::string address_delimiter)
+std::string print_ds_locator(std::string addresses, std::string value_delimiter, std::string address_delimiter)
 {
     std::stringstream result;
     for (auto locator : split_ds_locator(addresses, value_delimiter, address_delimiter))
@@ -243,7 +243,7 @@ std::stringstream print_ds_locator(std::string addresses, std::string value_deli
         result << "IP: " << std::get<0>(locator) << "  port: " << std::get<1>(locator)
             << "  id: " << std::get<2>(locator) << std::endl;
     }
-    return result;
+    return result.str();
 }
 
 eprosima::fastdds::dds::DomainParticipantQos get_node_qos(

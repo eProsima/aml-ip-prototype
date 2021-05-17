@@ -43,9 +43,9 @@ std::vector<std::pair<std::string, uint16_t>> split_locator(std::string addresse
 
 std::vector<std::tuple<std::string, uint16_t, uint16_t>> split_ds_locator(std::string addresses, std::string value_delimiter=",", std::string address_delimiter=";");
 
-std::stringstream print_locator(std::string addresses, std::string value_delimiter=",", std::string address_delimiter=";");
+std::string print_locator(std::string addresses, std::string value_delimiter=",", std::string address_delimiter=";");
 
-std::stringstream print_ds_locator(std::string addresses, std::string value_delimiter=",", std::string address_delimiter=";");
+std::string print_ds_locator(std::string addresses, std::string value_delimiter=",", std::string address_delimiter=";");
 
 eprosima::fastdds::dds::DomainParticipantQos get_node_qos(
         std::string name,
