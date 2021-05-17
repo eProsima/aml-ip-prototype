@@ -199,11 +199,11 @@ const option::Descriptor usage[] = {
     { HELP,    0, "h", "help",                   Arg::None,      "  -h \t--help  \tProduce help message." },
 
     { LISTENING_ADDRESSES, 0, "l", "listening-addresses",               Arg::Locator,
-      "  -l <adresses>\t--listening-address=<addresses> \t IP addresses where server will listen " \
+      "  -l <adresses>\t--listening-addresses=<addresses> \t IP addresses where server will listen " \
       "for external petitions and will receive replies from other servers (Default '127.0.0.1,5000')."},
 
     { CONNECTION_ADDRESSES, 0, "c", "connection-addresses",               Arg::DSLocator,
-      "  -c <addresses>\t --connection-address=<addresses> \t IP addresses of other servers and their ids that this "
+      "  -c <addresses>\t --connection-addresses=<addresses> \t IP addresses of other servers and their ids that this "
       " server will try to connect with (Default '')."},
 
     { ID, 0, "i", "id",               Arg::Numeric,
@@ -238,7 +238,7 @@ int main(
         columns = 80;
     }
 #else
-    columns = getenv("COLUMNS") ? atoi(getenv("COLUMNS")) : 80;
+    columns = getenv("COLUMNS") ? atoi(getenv("COLUMNS")) : 180;
 #endif // if defined(_WIN32)
 
     // Get executable arguments
