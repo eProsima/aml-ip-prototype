@@ -37,4 +37,8 @@ std::ostream& operator <<(
         std::ostream& output,
         const AML_IP_DLOutput& data);
 
+std::vector<std::pair<std::string, uint16_t>> split_locator(std::string addresses, std::string value_delimiter=",", std::string address_delimiter=";");
+
+std::vector<std::tuple<std::string, uint16_t, uint16_t>> split_ds_locator(std::string addresses, std::string value_delimiter=",", std::string address_delimiter=";");
+
 #endif // TYPES_UTILS_HPP

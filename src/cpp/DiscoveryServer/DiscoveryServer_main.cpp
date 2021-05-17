@@ -19,9 +19,17 @@
 
 #include "DiscoveryServerParticipant.hpp"
 
+#include <iostream>
+#include <regex>
 #include <string>
 
+#include "../utils/utils.hpp"
 #include "../thirdparty/optionparser.h"
+
+static const std::regex ipv4_port_id("(^(((((([0-9]{1,3}\\.){1,3})([0-9]{1,3})),([0-9]{1,5}),([0-9]+));)*"
+                              "((((([0-9]{1,3}\\.){1,3})([0-9]{1,3})),([0-9]{1,5}),([0-9]+))?))$)");
+static const std::regex ipv4_port("(^(((((([0-9]{1,3}\\.){1,3})([0-9]{1,3})),([0-9]{1,5}));)*"
+                              "(((([0-9]{1,3}\\.){1,3})([0-9]{1,3})),([0-9]{1,5})))$)");
 
 /*
  * Struct to parse the executable arguments
@@ -120,6 +128,44 @@ struct Arg : public option::Arg
         return option::ARG_ILLEGAL;
     }
 
+    static option::ArgStatus Locator(
+            const option::Option& option,
+            bool msg)
+    {
+        if (option.arg != 0)
+        {
+            // we must check if its a correct ip address plus port number
+            if (std::regex_match(option.arg, ipv4_port))
+            {
+                return option::ARG_OK;
+            }
+        }
+        if (msg)
+        {
+            print_error("Option '", option, "' requires an ip,port[;ip,port[;...]] argument\n");
+        }
+        return option::ARG_ILLEGAL;
+    }
+
+    static option::ArgStatus DSLocator(
+            const option::Option& option,
+            bool msg)
+    {
+        if (option.arg != 0)
+        {
+            // we must check if its a correct ip address plus port number
+            if (std::regex_match(option.arg, ipv4_port_id))
+            {
+                return option::ARG_OK;
+            }
+        }
+        if (msg)
+        {
+            print_error("Option '", option, "' requires an ip,port,id[;ip,port,id[;...]] argument\n");
+        }
+        return option::ARG_ILLEGAL;
+    }
+
 };
 
 // TODO is possible to open 2 transports in same port, so tcp and udp could be set as same port for future versions
@@ -130,12 +176,9 @@ enum  optionIndex
 {
     UNKNOWN_OPT,
     HELP,
-    LISTENING_ADDRESS,
-    LISTENING_PORT,
-    LISTENING_ID,
-    CONNECTION_ADDRESS,
-    CONNECTION_PORT,
-    CONNECTION_ID,
+    LISTENING_ADDRESSES,
+    CONNECTION_ADDRESSES,
+    ID,
     TIME,
     BACKUP
 };
@@ -147,24 +190,32 @@ const option::Descriptor usage[] = {
     { UNKNOWN_OPT, 0, "", "",                    Arg::None,
       "Usage: AML IP DiscoveryServer \n" \
       "Set IP address and listening ports.\nTo use WAN connection TCP port must be open from router.\n" \
+      "Listening Addresses are on format <IPaddress,port[;IPaddress,port[;...]]> ; string of pair <ip,port> " \
+      "separated with ';'. Valid address values are '127.0.0.1,1;255.255.255.255,35000'\n"
+      "Connection Addresses are on format <IPaddress,port,id[;IPaddress,port,id[;...]]> ; string of tuples " \
+      "<ip,port,id> separated with ';'. Valid address values are '127.0.0.1,1,0;255.255.255.255,35000,1000'\n"
       "The default FastDDS transports are available.\nGeneral options:" },
+
     { HELP,    0, "h", "help",                   Arg::None,      "  -h \t--help  \tProduce help message." },
-    { LISTENING_ADDRESS, 0, "a", "listening-address",               Arg::String,
-      "  -a <address> \t--listening-address=<address> \t Public IP address to connect from outside the LAN (Default '127.0.0.1')."},
-    { LISTENING_PORT, 0, "p", "listening-port",                 Arg::Numeric,
-      "  -p <num> \t--listening-port=<num> \tPort to listen as TCP server (Default 5100)."},
-    { LISTENING_ID, 0, "i", "listening-id",                      Arg::Numeric,
-      "  -i <num>\t--listening-id=<num> \tId of the Discovery Server to create the GUID (Default 0)."},
-    { CONNECTION_ADDRESS, 0, "", "connection-address",               Arg::String,
-      "  --connection-address=<address> \t IP address to connect with other Discovery Server. Set to remotely connection"},
-    { CONNECTION_PORT, 0, "", "connection-port",                 Arg::Numeric,
-      "  --connection-port=<num> \tPort to connect with another Discovery Server (Default 5100)."},
-    { CONNECTION_ID, 0, "", "connection-id",                      Arg::Numeric,
-      "  --connection-id=<num> \tId of the Discovery Server to connet remotely (set the GUID) (Default 0)."},
+
+    { LISTENING_ADDRESSES, 0, "l", "listening-addresses",               Arg::Locator,
+      "  -l <adresses>\t--listening-address=<addresses> \t IP addresses where server will listen " \
+      "for external petitions and will receive replies from other servers (Default '127.0.0.1,5000')."},
+
+    { CONNECTION_ADDRESSES, 0, "c", "connection-addresses",               Arg::DSLocator,
+      "  -c <addresses>\t --connection-address=<addresses> \t IP addresses of other servers and their ids that this "
+      " server will try to connect with (Default '')."},
+
+    { ID, 0, "i", "id",               Arg::Numeric,
+      "  -i <uint>\t --id=<uint> \t Id to the Discovery Server created. Use this id with the server address to " \
+      "connect with it as this server client. This id will set the GUID of the Discovery Server (Default 0)."},
+
     { TIME, 0, "t", "time",                      Arg::Numeric,
       "  -t <num>\t--time=<num> \tTime in seconds until the server closes, if 0 wait for user input (Default 0)."},
+
     { BACKUP, 0, "b", "backup",              Arg::None,
       "  -b \t--backup \tSet Discovery Server as Backup. Use only for debug purpose and erase old db before execute."},
+
     { 0, 0, 0, 0, 0, 0 }
 };
 
@@ -192,12 +243,9 @@ int main(
 
     // Get executable arguments
     uint32_t time = 0;
-    int listening_port = 5100;
-    std::string listening_address("127.0.0.1");
-    int listening_id = 0;
-    int connection_port = 5100;
-    std::string connection_address("");
-    int connection_id = 0;
+    std::string listening_addresses("127.0.0.1,5000");
+    uint16_t id = 0;
+    std::string connection_addresses("");
     bool backup = false;
 
     // No required arguments
@@ -233,28 +281,18 @@ int main(
                     return 0;
                     break;
 
-                case LISTENING_PORT:
-                    listening_port = std::strtol(opt.arg, nullptr, 10);
+                case LISTENING_ADDRESSES:
+                    // Must contain at least one direction
+                    listening_addresses = opt.arg;
                     break;
 
-                case LISTENING_ADDRESS:
-                    listening_address = opt.arg;
+                case CONNECTION_ADDRESSES:
+                    // There is no restriction with the connection
+                    connection_addresses = opt.arg;
                     break;
 
-                case LISTENING_ID:
-                    listening_id = std::strtol(opt.arg, nullptr, 10);
-                    break;
-
-                case CONNECTION_PORT:
-                    connection_port = std::strtol(opt.arg, nullptr, 10);
-                    break;
-
-                case CONNECTION_ADDRESS:
-                    connection_address = opt.arg;
-                    break;
-
-                case CONNECTION_ID:
-                    connection_id = std::strtol(opt.arg, nullptr, 10);
+                case ID:
+                    id = std::strtol(opt.arg, nullptr, 10);
                     break;
 
                 case TIME:
@@ -278,23 +316,34 @@ int main(
         return 1;
     }
 
-    // Public Address must be specified
-    if (listening_address == "")
-    {
-        std::cout << "CLI error: Public IP address must be specified" << std::endl;
-        option::printUsage(fwrite, stdout, usage, columns);
-        return 1;
-    }
+    // for (auto x : split_locator("127.0.0.1,1"))
+    // {
+    //     std::cout << std::get<0>(x) << " " << std::get<1>(x) << std::endl;
+    // }
+    // std::cout << std::endl;
+    // for (auto x : split_locator("127.0.0.1,1;192.168.0.1,5550;999.999.999.999,46000"))
+    // {
+    //     std::cout << std::get<0>(x) << " " << std::get<1>(x) << std::endl;
+    // }
+
+    // std::cout << std::endl;
+
+    // for (auto x : split_ds_locator("127.0.0.1,1,1"))
+    // {
+    //     std::cout << std::get<0>(x) << " " << std::get<1>(x) << " " << std::get<2>(x) << std::endl;
+    // }
+    // std::cout << std::endl;
+    // for (auto x : split_ds_locator("127.0.0.1,1;192.168.0.1,5550,0;999.999.999.999,46000,45000"))
+    // {
+    //     std::cout << std::get<0>(x) << " " << std::get<1>(x) << " " << std::get<2>(x) << std::endl;
+    // }
 
     // Create Participant object and run thread of publishing in loop
     DiscoveryServerParticipant part;
     if (part.init(
-                listening_port,
-                listening_address,
-                listening_id,
-                connection_port,
-                connection_address,
-                connection_id,
+                listening_addresses,
+                connection_addresses,
+                id,
                 backup))
     {
         part.run(time);
