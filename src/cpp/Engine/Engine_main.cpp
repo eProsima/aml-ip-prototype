@@ -207,11 +207,11 @@ const option::Descriptor usage[] = {
 
     { CONNECTION_ADDRESSES, 0, "c", "connection-addresses",               Arg::DSLocator,
       "  -c <addresses>\t --connection-addresses=<addresses> \t IP addresses of other servers and their ids that this "
-      " server will try to connect with (Default '')."},
+      " server will try to connect with (Default '127.0.0.1,5000,0')."},
 
     { LISTENING_ADDRESSES, 0, "l", "listening-addresses",               Arg::Locator,
       "  -l <adresses>\t--listening-addresses=<addresses> \t IP addresses where server will listen " \
-      "for external petitions and will receive replies from other servers (Default '127.0.0.1,5000')."},
+      "for external petitions and will receive replies from other servers (Default '127.0.0.1,5001')."},
 
     { 0, 0, 0, 0, 0, 0 }
 };
@@ -243,7 +243,7 @@ int main(
     int samples = 10;
     uint32_t data_size = 5;
     std::string connection_address("127.0.0.1,5000,0");
-    std::string listening_address("");
+    std::string listening_address("127.0.0.1,5001");
 
     // No required arguments
     if (argc > 0)
