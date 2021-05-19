@@ -17,11 +17,13 @@
  *
  */
 
-#ifndef TYPES_UTILS_HPP
-#define TYPES_UTILS_HPP
+#ifndef UTILS_UTILS_HPP
+#define UTILS_UTILS_HPP
 
 #include "../types/DLOutput/DLOutput.h"
 #include "../types/Atomization/Atomization.h"
+
+#include <fastdds/dds/domain/qos/DomainParticipantQos.hpp>
 
 AML_IP_Atomization generate_random_atomization_data(
         uint32_t data_size);
@@ -37,4 +39,17 @@ std::ostream& operator <<(
         std::ostream& output,
         const AML_IP_DLOutput& data);
 
-#endif // TYPES_UTILS_HPP
+std::vector<std::pair<std::string, uint16_t>> split_locator(std::string addresses, std::string value_delimiter=",", std::string address_delimiter=";");
+
+std::vector<std::tuple<std::string, uint16_t, uint16_t>> split_ds_locator(std::string addresses, std::string value_delimiter=",", std::string address_delimiter=";");
+
+std::string print_locator(std::string addresses, std::string value_delimiter=",", std::string address_delimiter=";");
+
+std::string print_ds_locator(std::string addresses, std::string value_delimiter=",", std::string address_delimiter=";");
+
+eprosima::fastdds::dds::DomainParticipantQos get_node_qos(
+        std::string name,
+        std::string connection_address,
+        std::string listening_address);
+
+#endif // UTILS_UTILS_HPP

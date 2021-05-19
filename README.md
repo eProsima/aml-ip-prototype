@@ -66,7 +66,7 @@ source install/setup.bash
 
 ## Executing Examples
 
-It is assummed that the user have a network architecture similar to the one desribed ahead to execute the examples correctly:
+It is assummed that the user have a network architecture similar to the one described below to execute the examples correctly:
 
 1. 3 different and independent NATs (under different routers or wifi connections).
 1. 4 different machines, 2 under the first NAT and 2 in the other two NATs.
@@ -243,6 +243,4 @@ source install/setup.bash
 ## Prototype limits
 
 1. Data sent is randomly generated, with no real meaning for an AML execution.
-1. It is only available to use one Discovery Server per network.
-    1. In the future several DS could connect to each other to create bigger and more robust networks.
 1. *TCP* version only allows to connect two nodes.

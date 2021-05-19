@@ -19,11 +19,17 @@
 
 #include "DLParticipant.hpp"
 
-#include <string>
+#include <regex>
 #include <stdlib.h>
+#include <string>
 
 #include "../thirdparty/optionparser.h"
 #include "../types/types.hpp"
+
+static const std::regex ipv4_port_id("(^(((((([0-9]{1,3}\\.){1,3})([0-9]{1,3})),([0-9]{1,5}),([0-9]+));)*"
+                              "((((([0-9]{1,3}\\.){1,3})([0-9]{1,3})),([0-9]{1,5}),([0-9]+))?))$)");
+static const std::regex ipv4_port("(^(((((([0-9]{1,3}\\.){1,3})([0-9]{1,3})),([0-9]{1,5}));)*"
+                              "(((([0-9]{1,3}\\.){1,3})([0-9]{1,3})),([0-9]{1,5})))$)");
 
 /*
  * Struct to parse the executable arguments
@@ -122,6 +128,43 @@ struct Arg : public option::Arg
         return option::ARG_ILLEGAL;
     }
 
+    static option::ArgStatus Locator(
+            const option::Option& option,
+            bool msg)
+    {
+        if (option.arg != 0)
+        {
+            // we must check if its a correct ip address plus port number
+            if (std::regex_match(option.arg, ipv4_port))
+            {
+                return option::ARG_OK;
+            }
+        }
+        if (msg)
+        {
+            print_error("Option '", option, "' requires an ip,port[;ip,port[;...]] argument\n");
+        }
+        return option::ARG_ILLEGAL;
+    }
+
+    static option::ArgStatus DSLocator(
+            const option::Option& option,
+            bool msg)
+    {
+        if (option.arg != 0)
+        {
+            // we must check if its a correct ip address plus port number
+            if (std::regex_match(option.arg, ipv4_port_id))
+            {
+                return option::ARG_OK;
+            }
+        }
+        if (msg)
+        {
+            print_error("Option '", option, "' requires an ip,port,id[;ip,port,id[;...]] argument\n");
+        }
+        return option::ARG_ILLEGAL;
+    }
 };
 
 /*
@@ -134,11 +177,8 @@ enum  optionIndex
     PERIOD,
     SAMPLES,
     DATA_SIZE,
-    CONNECTION_PORT,
-    CONNECTION_ADDRESS,
-    LISTENING_PORT,
-    LISTENING_ADDRESS,
-    ID
+    CONNECTION_ADDRESSES,
+    LISTENING_ADDRESSES,
 };
 
 /*
@@ -150,25 +190,28 @@ const option::Descriptor usage[] = {
       "Connecting port and address must specify where the Discovery Server is listening.\n" \
       "Listening port and address are not required, but without them this client could only work as a TCP client.\n" \
       "General options:" },
+
     { HELP,    0, "h", "help",               Arg::None,      "  -h \t--help  \tProduce help message." },
+
     { PERIOD, 0, "p", "period",             Arg::Float,
       "  -p <float> \t--period=<float> \tPeriod to send new random data (Default: 2)." },
+
     { SAMPLES, 0, "s", "samples",             Arg::Numeric,
       "  -s <num> \t--samples=<num> \tNumber of samples to send (Default: 10)." \
       " With samples=0 it keept sending till enter is pressed" },
-    { DATA_SIZE, 0, "l", "size",             Arg::Numeric,
-      "  -l <num> \t--size=<num> \tMax number of relations in data to send(Default: 5)." \
+
+    { DATA_SIZE, 0, "x", "size",             Arg::Numeric,
+      "  -x <num> \t--size=<num> \tMax number of relations in data to send(Default: 5)." \
       " This value also works as seed for random generation."},
-    { CONNECTION_PORT, 0, "", "connection-port",             Arg::Numeric,
-      "  --connection-port=<num> \tPort where the Discovery Server is listening (Default: 5100)."},
-    { CONNECTION_ADDRESS, 0, "", "connection-address",             Arg::Required,
-      "  --connection-address=<address> \tIP address where the Discovery Server is listening (Default '127.0.0.1')."},
-    { LISTENING_PORT, 0, "", "listening-port",             Arg::Numeric,
-      "  --listening-port=<num> \tPort to listen as TCP server. -1 to set as TCP client (Default: -1)."},
-    { LISTENING_ADDRESS, 0, "", "listening-address",             Arg::String,
-      "  --listening-address=<address> \tIP address to listen as TCP server (Default: '')."},
-    { ID, 0, "i", "id",                      Arg::Numeric,
-      "  -i <num>\t--id=<num> \tId of the Discovery Server to connect (change the DS GUID) (Default 0)."},
+
+    { CONNECTION_ADDRESSES, 0, "c", "connection-addresses",               Arg::DSLocator,
+      "  -c <addresses>\t --connection-addresses=<addresses> \t IP addresses of other servers and their ids that this "
+      " server will try to connect with (Default '')."},
+
+    { LISTENING_ADDRESSES, 0, "l", "listening-addresses",               Arg::Locator,
+      "  -l <adresses>\t--listening-addresses=<addresses> \t IP addresses where server will listen " \
+      "for external petitions and will receive replies from other servers (Default '127.0.0.1,5000')."},
+
     { 0, 0, 0, 0, 0, 0 }
 };
 
@@ -191,18 +234,15 @@ int main(
         columns = 80;
     }
 #else
-    columns = getenv("COLUMNS") ? atoi(getenv("COLUMNS")) : 80;
+    columns = getenv("COLUMNS") ? atoi(getenv("COLUMNS")) : 180;
 #endif // if defined(_WIN32)
 
     // Get executable arguments
     float period = 2;
     int samples = 10;
     uint32_t data_size = 5;
-    int connection_port = 5100;
-    std::string connection_address("127.0.0.1");
-    int listening_port = -1;
+    std::string connection_address("127.0.0.1,5000,0");
     std::string listening_address("");
-    int ds_id;
 
     // No required arguments
     if (argc > 0)
@@ -249,24 +289,12 @@ int main(
                     data_size = std::strtol(opt.arg, nullptr, 10);
                     break;
 
-                case CONNECTION_PORT:
-                    connection_port = std::strtol(opt.arg, nullptr, 10);
-                    break;
-
-                case CONNECTION_ADDRESS:
+                case CONNECTION_ADDRESSES:
                     connection_address = opt.arg;
                     break;
 
-                case LISTENING_PORT:
-                    listening_port = std::strtol(opt.arg, nullptr, 10);
-                    break;
-
-                case LISTENING_ADDRESS:
+                case LISTENING_ADDRESSES:
                     listening_address = opt.arg;
-                    break;
-
-                case ID:
-                    ds_id = std::strtol(opt.arg, nullptr, 10);
                     break;
 
                 case UNKNOWN_OPT:
@@ -295,7 +323,7 @@ int main(
 
     // Create Participant object and run thread of publishing in loop
     DLParticipant part;
-    if (part.init(connection_port, connection_address, listening_port, listening_address, ds_id))
+    if (part.init(connection_address, listening_address))
     {
         part.run(samples, period, data_size);
     }
