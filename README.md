@@ -5,6 +5,23 @@ a distributed independent AML network along the internet.
 The following repository store the first prototype that represents a MockUp of AML Nodes and could be use
 as an example of the communication process between nodes using Fast DDS communciation.
 
+## Installation Requirements
+
+This project needs to be linked with fastdds library.
+In order to build the fastdds project and so following the instructions given in this file, it is required some libraries in the system.
+Executing the following commands will install the required programs and versions required for this project execution:
+
+```sh
+# General propose programs
+sudo apt install cmake g++ python3-pip wget git
+
+# fastdds requirements
+sudo apt install libasio-dev libtinyxml2-dev
+
+# Colcon installation
+pip3 install -U colcon-common-extensions vcstool
+```
+
 ## Installation Instructions
 
 Set `${WORKSPACE_PATH}` environmental variable for the path AML-IP workspace.
