@@ -38,17 +38,17 @@ It is recommended to use the *DS* nodes, as it brings advantages and it has no l
 These are the executables the procuct installs:
 
 1. Discovery by *Discovery Server*
-    1. AML_IP_DiscoveryServer
+    1. Proto-DiscoveryServer
         1. Execute an AML Discovery Server Node that centralizes the new nodes discovery.
-    1. AML_IP_DL
+    1. Proto-Alg-DL
         1. Execute an AML DL Node that publish in `DL` topic.
-    1. AML_IP_Engine
+    1. Proto-Alg-Engine
         1. Execute an AML Engine Node that publish in `Atom` topic and subscribes in `DL` and `Atom` topics.
 
 1. Discovery by *Static Discovery*
-    1. AML_IP_DL_TCP
+    1. Proto-Alg-DL_TCP
         1. Execute an AML DL Node that publish in `DL` topic.
-    1. AML_IP_Engine_TCP
+    1. Proto-Alg-Engine_TCP
         1. Execute an AML Engine Node that publish in `Atom` topic and subscribes in `DL` and `Atom` topics.
 
 Each executable has different input arguments that allows to parametrized the execution.
@@ -58,10 +58,10 @@ Some of these arguments are required when working in LAN or WAN to set addresses
 
 ```sh
 # Executables:
-# AML_IP_DL | AML_IP_Engine | AML_IP_DiscoveryServer | AML_IP_DL_TCP | AML_IP_Engine_TCP
+# Proto-Alg-DL | Proto-Alg-Engine | Proto-DiscoveryServer | Proto-Alg-DL_TCP | Proto-Alg-Engine_TCP
 cd ${WORKSPACE_PATH}
 source install/setup.bash
-./install/AML_IP_Prototype/bin/AML_IP_DL # params (use -h to check arguments)
+./install/AML_IP_Prototype/bin/Proto-Alg-DL # params (use -h to check arguments)
 ```
 
 ## Executing Examples
@@ -108,21 +108,21 @@ The nodes will communicate to each other by `Interprocess` transport.
 # Discovery Server Node
 # Host-1
 source install/setup.bash
-./install/amlip/bin/AML_IP_DiscoveryServer --time 15 # time argument allows the node to drop after 15 seconds
+./install/amlip/bin/Proto-DiscoveryServer --time 15 # time argument allows the node to drop after 15 seconds
 ```
 
 ```sh
 # DL Node
 # Host-1
 source install/setup.bash
-./install/amlip/bin/AML_IP_DL
+./install/amlip/bin/Proto-Alg-DL
 ```
 
 ```sh
 # Engine Node
 # Host-1
 source install/setup.bash
-./install/amlip/bin/AML_IP_Engine
+./install/amlip/bin/Proto-Alg-Engine
 ```
 
 ### DS in LAN
@@ -134,21 +134,21 @@ The nodes will communicate to each other by `UDP` default transport.
 # Discovery Server Node
 # Host-1
 source install/setup.bash
-./install/amlip/bin/AML_IP_DiscoveryServer --time 15 --listening-addresses="${HOST_1_IP},${PORT_1}"
+./install/amlip/bin/Proto-DiscoveryServer --time 15 --listening-addresses="${HOST_1_IP},${PORT_1}"
 ```
 
 ```sh
 # DL Node
 # Host-1-2
 source install/setup.bash
-./install/amlip/bin/AML_IP_DL --connection-addresses="${HOST_1_IP},${PORT_1},0"
+./install/amlip/bin/Proto-Alg-DL --connection-addresses="${HOST_1_IP},${PORT_1},0"
 ```
 
 ```sh
 # Engine Node
 # Host-1-2
 source install/setup.bash
-./install/amlip/bin/AML_IP_Engine --connection-addresses="${HOST_1_IP},${PORT_1},0"
+./install/amlip/bin/Proto-Alg-Engine --connection-addresses="${HOST_1_IP},${PORT_1},0"
 ```
 
 With this same architecture, more *DL* and *Engine* nodes could be run at the same time, and they will communicate with every other node running at the time.
@@ -162,21 +162,21 @@ The nodes will communicate to each other by `TCP`, and one of them must have por
 # Discovery Server Node
 # Host-1
 source install/setup.bash
-./install/amlip/bin/AML_IP_DiscoveryServer --time 15 --listening-addresses="${ROUTER_1_IP},${PORT_1}"
+./install/amlip/bin/Proto-DiscoveryServer --time 15 --listening-addresses="${ROUTER_1_IP},${PORT_1}"
 ```
 
 ```sh
 # DL Node
 # Host-2
 source install/setup.bash
-./install/amlip/bin/AML_IP_DL --connection-addresses="${ROUTER_1_IP},${PORT_1},0" --listening-addresses="${ROUTER_2_IP},${PORT_2}"
+./install/amlip/bin/Proto-Alg-DL --connection-addresses="${ROUTER_1_IP},${PORT_1},0" --listening-addresses="${ROUTER_2_IP},${PORT_2}"
 ```
 
 ```sh
 # Engine Node
 # Host-3
 source install/setup.bash
-./install/amlip/bin/AML_IP_Engine --connection-addresses="${ROUTER_1_IP},${PORT_1},0" --listening-addresses="${ROUTER_3_IP},${PORT_3}"
+./install/amlip/bin/Proto-Alg-Engine --connection-addresses="${ROUTER_1_IP},${PORT_1},0" --listening-addresses="${ROUTER_3_IP},${PORT_3}"
 ```
 
 ### Multiple DS in WAN
@@ -190,35 +190,35 @@ Ports `${PORT_2_x}` and `${PORT_3_x}` are any free port in host 2 and 3 respecti
 # Central Discovery Server Node
 # Host-1
 source install/setup.bash
-./install/amlip/bin/AML_IP_DiscoveryServer --id=1 --listening-addresses="${ROUTER_1_IP},${PORT_1}" --time=15
+./install/amlip/bin/Proto-DiscoveryServer --id=1 --listening-addresses="${ROUTER_1_IP},${PORT_1}" --time=15
 ```
 
 ```sh
 # Discovery Server Node
 # Host-2
 source install/setup.bash
-./install/amlip/bin/AML_IP_DiscoveryServer --id=2 --listening-addresses="${ROUTER_2_IP},${PORT_2};127.0.0.1,5000" --connection-addresses="${ROUTER_1_IP},${PORT_1},1" --time=15
+./install/amlip/bin/Proto-DiscoveryServer --id=2 --listening-addresses="${ROUTER_2_IP},${PORT_2};127.0.0.1,5000" --connection-addresses="${ROUTER_1_IP},${PORT_1},1" --time=15
 ```
 
 ```sh
 # DL Node
 # Host-2
 source install/setup.bash
-./install/amlip/bin/AML_IP_DL --listening-addresses="${ROUTER_2_IP},${PORT_2b};127.0.0.1,5001" --connection-addresses="127.0.0.1,5000,2"
+./install/amlip/bin/Proto-Alg-DL --listening-addresses="${ROUTER_2_IP},${PORT_2b};127.0.0.1,5001" --connection-addresses="127.0.0.1,5000,2"
 ```
 
 ```sh
 # Discovery Server Node
 # Host-3
 source install/setup.bash
-./install/amlip/bin/AML_IP_DiscoveryServer --id=3 --listening-addresses="${ROUTER_3_IP},${PORT_3};127.0.0.1,5000" --connection-addresses="${ROUTER_1_IP},${PORT_1},1" --time=15
+./install/amlip/bin/Proto-DiscoveryServer --id=3 --listening-addresses="${ROUTER_3_IP},${PORT_3};127.0.0.1,5000" --connection-addresses="${ROUTER_1_IP},${PORT_1},1" --time=15
 ```
 
 ```sh
 # Engine Node
 # Host-3
 source install/setup.bash
-./install/amlip/bin/AML_IP_Engine --listening-addresses="127.0.0.1,5001" --connection-addresses="127.0.0.1,5000,3"
+./install/amlip/bin/Proto-Alg-Engine --listening-addresses="127.0.0.1,5001" --connection-addresses="127.0.0.1,5000,3"
 ```
 
 More nodes could be added to the communication network, but remember that they must configure the portforwarding in their routers to be able to receive data.
@@ -231,14 +231,14 @@ The *TCP* executables works with similar examples as the explained, but they do 
 # DL Node with TCP
 # Host-1
 source install/setup.bash
-./install/amlip/bin/AML_IP_DL_TCP --connection-address=${ROUTER_2_IP} --connection-port=${PORT_2} --listening-address=${ROUTER_1_IP} --listening-port=${PORT_1}
+./install/amlip/bin/Proto-Alg-DL_TCP --connection-address=${ROUTER_2_IP} --connection-port=${PORT_2} --listening-address=${ROUTER_1_IP} --listening-port=${PORT_1}
 ```
 
 ```sh
 # Engine Node with TCP
 # Host-2
 source install/setup.bash
-./install/amlip/bin/AML_IP_Engine_TCP --connection-address=${ROUTER_1_IP} --connection-port=${PORT_1} --listening-address=${ROUTER_2_IP} --listening-port=${PORT_2}
+./install/amlip/bin/Proto-Alg-Engine_TCP --connection-address=${ROUTER_1_IP} --connection-port=${PORT_1} --listening-address=${ROUTER_2_IP} --listening-port=${PORT_2}
 ```
 
 ## Prototype limits

@@ -90,74 +90,74 @@ set(TYPES_SOURCES_CXX
     src/cpp/types/DLOutput/DLOutputPubSubTypes.cxx
     src/cpp/utils/utils.cpp)
 
-# AML-DL executable
-message(STATUS "Creating AML_IP_DL executable...")
-set(AML_IP_DL_SOURCE
+# DL executable
+message(STATUS "Creating Proto-Alg-DL executable...")
+set(Proto-Alg-DL_SOURCE
     src/cpp/DL/DLParticipant.cpp
     src/cpp/DL/DL_main.cpp)
 
-add_executable(AML_IP_DL ${TYPES_SOURCES_CXX} ${AML_IP_DL_SOURCE})
-target_compile_definitions(AML_IP_DL PRIVATE
+add_executable(Proto-Alg-DL ${TYPES_SOURCES_CXX} ${Proto-Alg-DL_SOURCE})
+target_compile_definitions(Proto-Alg-DL PRIVATE
     $<$<AND:$<NOT:$<BOOL:${WIN32}>>,$<STREQUAL:"${CMAKE_BUILD_TYPE}","Debug">>:__DEBUG>)
 
-target_link_libraries(AML_IP_DL fastrtps fastcdr foonathan_memory)
-install(TARGETS AML_IP_DL
+target_link_libraries(Proto-Alg-DL fastrtps fastcdr foonathan_memory)
+install(TARGETS Proto-Alg-DL
     RUNTIME DESTINATION ${BIN_INSTALL_DIR})
 
 # Engine executable
-message(STATUS "Creating AML_IP_Engine executable...")
-set(AML_IP_Engine_SOURCE
+message(STATUS "Creating Proto-Alg-Engine executable...")
+set(Proto-Alg-Engine_SOURCE
     src/cpp/Engine/EngineParticipant.cpp
     src/cpp/Engine/Engine_main.cpp)
 
-add_executable(AML_IP_Engine ${TYPES_SOURCES_CXX} ${AML_IP_Engine_SOURCE})
-target_compile_definitions(AML_IP_Engine PRIVATE
+add_executable(Proto-Alg-Engine ${TYPES_SOURCES_CXX} ${Proto-Alg-Engine_SOURCE})
+target_compile_definitions(Proto-Alg-Engine PRIVATE
     $<$<AND:$<NOT:$<BOOL:${WIN32}>>,$<STREQUAL:"${CMAKE_BUILD_TYPE}","Debug">>:__DEBUG>)
 
-target_link_libraries(AML_IP_Engine fastrtps fastcdr foonathan_memory)
-install(TARGETS AML_IP_Engine
+target_link_libraries(Proto-Alg-Engine fastrtps fastcdr foonathan_memory)
+install(TARGETS Proto-Alg-Engine
     RUNTIME DESTINATION ${BIN_INSTALL_DIR})
 
 # Discovery Server executable
-message(STATUS "Creating AML_IP_DiscoveryServer executable...")
-set(AML_IP_DiscoveryServer_SOURCE
+message(STATUS "Creating Proto-DiscoveryServer executable...")
+set(Proto-DiscoveryServer_SOURCE
     src/cpp/DiscoveryServer/DiscoveryServerParticipant.cpp
     src/cpp/DiscoveryServer/DiscoveryServer_main.cpp)
 
-add_executable(AML_IP_DiscoveryServer ${TYPES_SOURCES_CXX} ${AML_IP_DiscoveryServer_SOURCE})
-target_compile_definitions(AML_IP_DiscoveryServer PRIVATE
+add_executable(Proto-DiscoveryServer ${TYPES_SOURCES_CXX} ${Proto-DiscoveryServer_SOURCE})
+target_compile_definitions(Proto-DiscoveryServer PRIVATE
     $<$<AND:$<NOT:$<BOOL:${WIN32}>>,$<STREQUAL:"${CMAKE_BUILD_TYPE}","Debug">>:__DEBUG>)
 
-target_link_libraries(AML_IP_DiscoveryServer fastrtps fastcdr foonathan_memory)
-install(TARGETS AML_IP_DiscoveryServer
+target_link_libraries(Proto-DiscoveryServer fastrtps fastcdr foonathan_memory)
+install(TARGETS Proto-DiscoveryServer
     RUNTIME DESTINATION ${BIN_INSTALL_DIR})
 
 # TCP Direct Connection executables
 
-# AML-DL-TCP executable
-message(STATUS "Creating AML_IP_DL_TCP executable...")
-set(AML_IP_DL_TCP_SOURCE
+# Proto-Alg-DL_TCP executable
+message(STATUS "Creating Proto-Alg-DL_TCP executable...")
+set(Proto-Alg-DL_TCP_SOURCE
     src/cpp/TCPconnection/DL/DLParticipant.cpp
     src/cpp/TCPconnection/DL/DL_main.cpp)
 
-add_executable(AML_IP_DL_TCP ${TYPES_SOURCES_CXX} ${AML_IP_DL_TCP_SOURCE})
-target_compile_definitions(AML_IP_DL_TCP PRIVATE
+add_executable(Proto-Alg-DL_TCP ${TYPES_SOURCES_CXX} ${Proto-Alg-DL_TCP_SOURCE})
+target_compile_definitions(Proto-Alg-DL_TCP PRIVATE
     $<$<AND:$<NOT:$<BOOL:${WIN32}>>,$<STREQUAL:"${CMAKE_BUILD_TYPE}","Debug">>:__DEBUG>)
 
-target_link_libraries(AML_IP_DL_TCP fastrtps fastcdr foonathan_memory)
-install(TARGETS AML_IP_DL_TCP
+target_link_libraries(Proto-Alg-DL_TCP fastrtps fastcdr foonathan_memory)
+install(TARGETS Proto-Alg-DL_TCP
     RUNTIME DESTINATION ${BIN_INSTALL_DIR})
 
-# Engine executable
-message(STATUS "Creating AML_IP_Engine_TCP executable...")
-set(AML_IP_Engine_TCP_SOURCE
+# Proto-Alg-EngineL_TCP executable
+message(STATUS "Creating Proto-Alg-Engine_TCP executable...")
+set(Proto-Alg-Engine_TCP_SOURCE
     src/cpp/TCPconnection/Engine/EngineParticipant.cpp
     src/cpp/TCPconnection/Engine/Engine_main.cpp)
 
-add_executable(AML_IP_Engine_TCP ${TYPES_SOURCES_CXX} ${AML_IP_Engine_TCP_SOURCE})
-target_compile_definitions(AML_IP_Engine_TCP PRIVATE
+add_executable(Proto-Alg-Engine_TCP ${TYPES_SOURCES_CXX} ${Proto-Alg-Engine_TCP_SOURCE})
+target_compile_definitions(Proto-Alg-Engine_TCP PRIVATE
     $<$<AND:$<NOT:$<BOOL:${WIN32}>>,$<STREQUAL:"${CMAKE_BUILD_TYPE}","Debug">>:__DEBUG>)
 
-target_link_libraries(AML_IP_Engine_TCP fastrtps fastcdr foonathan_memory)
-install(TARGETS AML_IP_Engine_TCP
+target_link_libraries(Proto-Alg-Engine_TCP fastrtps fastcdr foonathan_memory)
+install(TARGETS Proto-Alg-Engine_TCP
     RUNTIME DESTINATION ${BIN_INSTALL_DIR})

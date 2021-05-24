@@ -186,7 +186,7 @@ enum  optionIndex
  */
 const option::Descriptor usage[] = {
     { UNKNOWN_OPT, 0, "", "",                Arg::None,
-      "Usage: AML IP DL \n" \
+      "Usage: Proto-Alg-DL\n" \
       "Connecting port and address must specify where the Discovery Server is listening.\n" \
       "Listening port and address are not required, but without them this client could only work as a TCP client.\n" \
       "General options:" },
@@ -310,10 +310,10 @@ int main(
         return 1;
     }
 
-    // Public Address must be specified
+    // DS Address must be specified
     if (connection_address == "")
     {
-        std::cout << "CLI error: Discovery Server IP address must be specified" << std::endl;
+        std::cout << "CLI error: Discovery Server address must be specified with <connection-addresses>" << std::endl;
         option::printUsage(fwrite, stdout, usage, columns);
         return 1;
     }

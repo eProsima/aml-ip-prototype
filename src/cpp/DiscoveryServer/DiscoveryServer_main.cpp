@@ -188,7 +188,7 @@ enum  optionIndex
  */
 const option::Descriptor usage[] = {
     { UNKNOWN_OPT, 0, "", "",                    Arg::None,
-      "Usage: AML IP DiscoveryServer \n" \
+      "Usage: Proto-DiscoveryServer \n" \
       "Set IP address and listening ports.\nTo use WAN connection TCP port must be open from router.\n" \
       "Listening Addresses are on format <IPaddress,port[;IPaddress,port[;...]]> ; string of pair <ip,port> " \
       "separated with ';'. Valid address values are '127.0.0.1,1;255.255.255.255,35000'\n"
@@ -315,28 +315,6 @@ int main(
         option::printUsage(fwrite, stdout, usage, columns);
         return 1;
     }
-
-    // for (auto x : split_locator("127.0.0.1,1"))
-    // {
-    //     std::cout << std::get<0>(x) << " " << std::get<1>(x) << std::endl;
-    // }
-    // std::cout << std::endl;
-    // for (auto x : split_locator("127.0.0.1,1;192.168.0.1,5550;999.999.999.999,46000"))
-    // {
-    //     std::cout << std::get<0>(x) << " " << std::get<1>(x) << std::endl;
-    // }
-
-    // std::cout << std::endl;
-
-    // for (auto x : split_ds_locator("127.0.0.1,1,1"))
-    // {
-    //     std::cout << std::get<0>(x) << " " << std::get<1>(x) << " " << std::get<2>(x) << std::endl;
-    // }
-    // std::cout << std::endl;
-    // for (auto x : split_ds_locator("127.0.0.1,1;192.168.0.1,5550,0;999.999.999.999,46000,45000"))
-    // {
-    //     std::cout << std::get<0>(x) << " " << std::get<1>(x) << " " << std::get<2>(x) << std::endl;
-    // }
 
     // Create Participant object and run thread of publishing in loop
     DiscoveryServerParticipant part;

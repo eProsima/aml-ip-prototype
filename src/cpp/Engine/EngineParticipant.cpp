@@ -65,7 +65,7 @@ bool EngineParticipant::init(
         std::string listening_address)
 {
     //CREATE THE PARTICIPANT
-    DomainParticipantQos pqos = get_node_qos("Engine Participant", connection_address, listening_address);
+    DomainParticipantQos pqos = get_node_qos("Proto-Alg-Engine", connection_address, listening_address);
 
     participant_ = DomainParticipantFactory::get_instance()->create_participant(DEFAULT_DOMAIN, pqos);
 
@@ -74,7 +74,7 @@ bool EngineParticipant::init(
         return false;
     }
 
-    std::cout << "Engine Participant created with guid: " << participant_->guid().guidPrefix << std::endl
+    std::cout << "Proto-Alg-Engine created with guid: " << participant_->guid().guidPrefix << std::endl
               << " listening in addresses: " << std::endl
               << print_locator(listening_address) // << std::endl // added in print_locator
               << " connecting with servers in addresses: " << std::endl
@@ -239,12 +239,12 @@ void EngineParticipant::runThread(
 
         if (!publish(data))
         {
-            std::cout << std::endl << "<< Engine Participant " << participant_->guid().guidPrefix
+            std::cout << std::endl << "<< Proto-Alg-Engine " << participant_->guid().guidPrefix
                       << " ERROR sending message: " << ++index << std::endl;
         }
         else
         {
-            std::cout << std::endl << "<< Engine Participant " << participant_->guid().guidPrefix
+            std::cout << std::endl << "<< Proto-Alg-Engine " << participant_->guid().guidPrefix
                       << " sent atomization number: " << ++index
                       << " message: " << data << std::endl;
         }
@@ -260,14 +260,14 @@ void EngineParticipant::run(
 
     if (samples == 0)
     {
-        std::cout << "Engine Participant " << participant_->guid().guidPrefix
+        std::cout << "Proto-Alg-Engine " << participant_->guid().guidPrefix
                   << " publishing. Please press enter to stop it at any time." << std::endl;
         std::cin.ignore();
         stop_.store(true);
     }
     else
     {
-        std::cout << "Engine Participant " << participant_->guid().guidPrefix
+        std::cout << "Proto-Alg-Engine " << participant_->guid().guidPrefix
                   << " publishing " << samples << " samples." << std::endl;
     }
 
@@ -290,7 +290,7 @@ void EngineWriterListener::on_publication_matched(
         if (eprosima::fastrtps::rtps::iHandle2GUID(info.last_subscription_handle).guidPrefix !=
                 writer->guid().guidPrefix)
         {
-            std::cout << "Engine Participant " << writer->guid().guidPrefix
+            std::cout << "Proto-Alg-Engine " << writer->guid().guidPrefix
                       << " matched publication with " << info.last_subscription_handle << std::endl;
         }
     }
@@ -300,7 +300,7 @@ void EngineWriterListener::on_publication_matched(
         if (eprosima::fastrtps::rtps::iHandle2GUID(info.last_subscription_handle).guidPrefix !=
                 writer->guid().guidPrefix)
         {
-            std::cout << "Engine Participant " << writer->guid().guidPrefix
+            std::cout << "Proto-Alg-Engine " << writer->guid().guidPrefix
                       << " unmatched publication with " << info.last_subscription_handle << std::endl;
         }
     }
@@ -317,12 +317,12 @@ void DLReaderListener::on_subscription_matched(
 {
     if (info.current_count_change == 1)
     {
-        std::cout << "Engine Participant " << reader->guid().guidPrefix
+        std::cout << "Proto-Alg-Engine " << reader->guid().guidPrefix
                   << " matched DL reader with a new Dl: " << info.last_publication_handle << std::endl;
     }
     else if (info.current_count_change == -1)
     {
-        std::cout << "Engine Participant " << reader->guid().guidPrefix
+        std::cout << "Proto-Alg-Engine " << reader->guid().guidPrefix
                   << " unmatched DL reader with Dl: " << info.last_publication_handle << std::endl;
     }
     else
@@ -343,7 +343,7 @@ void DLReaderListener::on_data_available(
     {
         if (info.valid_data)
         {
-            std::cout << ">> Engine Participant " << reader->guid().guidPrefix
+            std::cout << ">> Proto-Alg-Engine " << reader->guid().guidPrefix
                       << " receive DL message " << data << " from: "
                       << info.sample_identity.writer_guid().guidPrefix << std::endl
                       << ". Number of messages received so far: " << ++samples_ << std::endl;
@@ -361,7 +361,7 @@ void AtomizationReaderListener::on_subscription_matched(
         if (eprosima::fastrtps::rtps::iHandle2GUID(info.last_publication_handle).guidPrefix !=
                 reader->guid().guidPrefix)
         {
-            std::cout << "Engine Participant " << reader->guid().guidPrefix
+            std::cout << "Proto-Alg-Engine " << reader->guid().guidPrefix
                       << " matched Atomization reader with other Engine: " << info.last_publication_handle << std::endl;
         }
     }
@@ -371,7 +371,7 @@ void AtomizationReaderListener::on_subscription_matched(
         if (eprosima::fastrtps::rtps::iHandle2GUID(info.last_publication_handle).guidPrefix !=
                 reader->guid().guidPrefix)
         {
-            std::cout << "Engine Participant " << reader->guid().guidPrefix
+            std::cout << "Proto-Alg-Engine " << reader->guid().guidPrefix
                       << " unmatched Atomization reader with Engine: " << info.last_publication_handle << std::endl;
         }
     }
@@ -394,7 +394,7 @@ void AtomizationReaderListener::on_data_available(
         // Avoid read data from out own writer
         if (info.sample_identity.writer_guid().guidPrefix != reader->guid().guidPrefix && info.valid_data)
         {
-            std::cout << ">> Engine Participant " << reader->guid().guidPrefix
+            std::cout << ">> Proto-Alg-Engine " << reader->guid().guidPrefix
                       << " receive Atomization message " << data << " from: "
                       << info.sample_identity.writer_guid().guidPrefix << std::endl
                       << ". Number of messages received so far: " << ++samples_ << std::endl;

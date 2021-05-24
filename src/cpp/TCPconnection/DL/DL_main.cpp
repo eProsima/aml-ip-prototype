@@ -145,7 +145,7 @@ enum  optionIndex
  */
 const option::Descriptor usage[] = {
     { UNKNOWN_OPT, 0, "", "",                Arg::None,
-      "Usage: AML IP DL \n" \
+      "Usage: Proto-Alg-DL_TCP \n" \
       "If TCP options are set, TCP transport will be use as client, server or both.\n" \
       "General options:" },
     { HELP,    0, "h", "help",               Arg::None,      "  -h \t--help  \tProduce help message." },

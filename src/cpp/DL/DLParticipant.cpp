@@ -55,7 +55,7 @@ bool DLParticipant::init(
         std::string listening_address)
 {
     //CREATE THE PARTICIPANT
-    DomainParticipantQos pqos = get_node_qos("DL Participant", connection_address, listening_address);
+    DomainParticipantQos pqos = get_node_qos("Proto-Alg-DL", connection_address, listening_address);
 
     participant_ = DomainParticipantFactory::get_instance()->create_participant(DEFAULT_DOMAIN, pqos);
 
@@ -64,7 +64,7 @@ bool DLParticipant::init(
         return false;
     }
 
-    std::cout << "DL Participant created with guid: " << participant_->guid().guidPrefix << std::endl
+    std::cout << "Proto-Alg-DL created with guid: " << participant_->guid().guidPrefix << std::endl
               << " listening in addresses: " << std::endl
               << print_locator(listening_address) // << std::endl // added in print_locator
               << " connecting with servers in addresses: " << std::endl
@@ -150,12 +150,12 @@ void DLParticipant::runThread(
 
         if (!publish(data))
         {
-            std::cout << std::endl << "<< DL Participant " << participant_->guid().guidPrefix
+            std::cout << std::endl << "<< Proto-Alg-DL " << participant_->guid().guidPrefix
                       << " ERROR sending message: " << ++index << std::endl;
         }
         else
         {
-            std::cout << std::endl << "<< DL Participant " << participant_->guid().guidPrefix
+            std::cout << std::endl << "<< Proto-Alg-DL " << participant_->guid().guidPrefix
                       << " sent DLOutput number: " << ++index << " message: " << data << std::endl;
         }
     }
@@ -170,14 +170,14 @@ void DLParticipant::run(
 
     if (samples == 0)
     {
-        std::cout << "DL Participant " << participant_->guid().guidPrefix
+        std::cout << "Proto-Alg-DL " << participant_->guid().guidPrefix
                   << " publishing. Please press enter to stop it at any time." << std::endl;
         std::cin.ignore();
         stop_.store(true);
     }
     else
     {
-        std::cout << "DL Participant " << participant_->guid().guidPrefix
+        std::cout << "Proto-Alg-DL " << participant_->guid().guidPrefix
                   << " publishing " << samples << " samples." << std::endl;
     }
 
@@ -196,12 +196,12 @@ void DLListener::on_publication_matched(
 {
     if (info.current_count_change == 1)
     {
-        std::cout << "DL Participant " << writer->guid().guidPrefix << " matched with "
+        std::cout << "Proto-Alg-DL " << writer->guid().guidPrefix << " matched with "
                   << info.last_subscription_handle << std::endl;
     }
     else if (info.current_count_change == -1)
     {
-        std::cout << "DL Participant " << writer->guid().guidPrefix << " unmatched with "
+        std::cout << "Proto-Alg-DL " << writer->guid().guidPrefix << " unmatched with "
                   << info.last_subscription_handle << std::endl;
     }
     else
