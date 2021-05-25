@@ -24,7 +24,7 @@
 #include <string>
 
 #include "../utils/utils.hpp"
-#include "../thirdparty/optionparser.h"
+#include <optionparser.h>
 
 static const std::regex ipv4_port_id("(^(((((([0-9]{1,3}\\.){1,3})([0-9]{1,3})),([0-9]{1,5}),([0-9]+));)*"
                               "((((([0-9]{1,3}\\.){1,3})([0-9]{1,3})),([0-9]{1,5}),([0-9]+))?))$)");

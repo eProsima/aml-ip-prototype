@@ -1,0 +1,3 @@
+[submodule "thirdparty/miniupnp"]
+	path = thirdparty/miniupnp
+	url = https://github.com/miniupnp/miniupnp

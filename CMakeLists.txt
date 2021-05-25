@@ -24,17 +24,32 @@ cmake_policy(VERSION 3.5...3.13)
 project(amlip)
 
 ###############################################################################
+# Load CMake modules
+###############################################################################
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake/modules)
+
+###############################################################################
+# CMake Variables
+###############################################################################
+option(UPNP "Activate UPnP functionalities" OFF)
+
+###############################################################################
 # Load external projects
 ###############################################################################
+include(${PROJECT_SOURCE_DIR}/cmake/common/eprosima_libraries.cmake)
+
+# eProsima libraries
+find_package(foonathan_memory REQUIRED)
 find_package(fastcdr REQUIRED)
 find_package(fastrtps REQUIRED)
 
-if(${fastcdr_FOUND})
-    message(STATUS "Fast CDR found!")
+# thirdparty libraries
+if(UPNP)
+    eprosima_find_thirdparty(miniupnpc miniupnp REQUIRED)
 endif()
-if(${fastrtps_FOUND})
-    message(STATUS "Fast DDS found!")
-endif()
+
+# header only libraries
+include_directories(thirdparty/optionparser)
 
 ###############################################################################
 # Set C++14 as the C++ standard required to build the project
@@ -161,3 +176,18 @@ target_compile_definitions(Proto-Alg-Engine_TCP PRIVATE
 target_link_libraries(Proto-Alg-Engine_TCP fastrtps fastcdr foonathan_memory)
 install(TARGETS Proto-Alg-Engine_TCP
     RUNTIME DESTINATION ${BIN_INSTALL_DIR})
+
+if(UPNP)
+    # Proto-UPnP executable
+    message(STATUS "Creating Proto-UPnP executable...")
+    set(Proto-UPnP_SOURCE
+        src/cpp/upnp/upnp.cpp)
+
+    add_executable(Proto-UPnP ${Proto-UPnP_SOURCE})
+    target_compile_definitions(Proto-UPnP PRIVATE
+        $<$<AND:$<NOT:$<BOOL:${WIN32}>>,$<STREQUAL:"${CMAKE_BUILD_TYPE}","Debug">>:__DEBUG>)
+
+    target_link_libraries(Proto-UPnP miniupnpc)
+    install(TARGETS Proto-UPnP
+        RUNTIME DESTINATION ${BIN_INSTALL_DIR})
+endif()

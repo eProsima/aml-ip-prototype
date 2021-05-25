@@ -22,7 +22,7 @@
 #include <string>
 #include <stdlib.h>
 
-#include "../../thirdparty/optionparser.h"
+#include <optionparser.h>
 
 /*
  * Struct to parse the executable arguments
