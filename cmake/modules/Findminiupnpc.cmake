@@ -18,7 +18,8 @@ find_path(MINIUPNPC_INCLUDE_DIR NAMES miniupnpc.h PATH_SUFFIXES miniupnpc)
 find_library(MINIUPNPC_LIBRARY miniupnpc)
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(miniupnpc DEFAULT_MSG MINIUPNPC_INCLUDE_DIR)
+find_package_handle_standard_args(miniupnpc DEFAULT_MSG MINIUPNPC_INCLUDE_DIR MINIUPNPC_LIBRARY)
 MARK_AS_ADVANCED(MINIUPNPC_INCLUDE_DIR MINIUPNPC_LIBRARY)
 
-message(STATUS "Miniupnpc Found: ${MINIUPNPC_INCLUDE_DIR}")
+message(STATUS "Miniupnpc headers found: ${MINIUPNPC_INCLUDE_DIR}")
+message(STATUS "Miniupnpc library found: ${MINIUPNPC_LIBRARY}")

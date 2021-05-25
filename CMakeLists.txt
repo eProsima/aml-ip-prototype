@@ -29,6 +29,21 @@ project(amlip)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake/modules)
 
 ###############################################################################
+# Installation paths
+###############################################################################
+set(BIN_INSTALL_DIR bin/ CACHE PATH "Installation directory for binaries")
+set(INCLUDE_INSTALL_DIR include/ CACHE PATH "Installation directory for C++ headers")
+set(LIB_INSTALL_DIR lib${LIB_SUFFIX}/ CACHE PATH "Installation directory for libraries")
+set(DATA_INSTALL_DIR share/ CACHE PATH "Installation directory for data")
+if(WIN32)
+    set(LICENSE_INSTALL_DIR . CACHE PATH "Installation directory for licenses")
+else()
+    set(LICENSE_INSTALL_DIR ${DATA_INSTALL_DIR}/${PROJECT_NAME} CACHE PATH "Installation directory for licenses")
+endif()
+
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+###############################################################################
 # CMake Variables
 ###############################################################################
 option(UPNP "Activate UPnP functionalities" OFF)
@@ -45,7 +60,7 @@ find_package(fastrtps REQUIRED)
 
 # thirdparty libraries
 if(UPNP)
-    eprosima_find_thirdparty(miniupnpc miniupnp REQUIRED)
+    eprosima_find_package(miniupnpc miniupnp REQUIRED)
 endif()
 
 # header only libraries
@@ -81,21 +96,6 @@ endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 
 ###############################################################################
-# Installation paths
-###############################################################################
-set(BIN_INSTALL_DIR bin/ CACHE PATH "Installation directory for binaries")
-set(INCLUDE_INSTALL_DIR include/ CACHE PATH "Installation directory for C++ headers")
-set(LIB_INSTALL_DIR lib${LIB_SUFFIX}/ CACHE PATH "Installation directory for libraries")
-set(DATA_INSTALL_DIR share/ CACHE PATH "Installation directory for data")
-if(WIN32)
-    set(LICENSE_INSTALL_DIR . CACHE PATH "Installation directory for licenses")
-else()
-    set(LICENSE_INSTALL_DIR ${DATA_INSTALL_DIR}/${PROJECT_NAME} CACHE PATH "Installation directory for licenses")
-endif()
-
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-###############################################################################
 # Create executables
 ###############################################################################
 set(TYPES_SOURCES_CXX
@@ -106,7 +106,7 @@ set(TYPES_SOURCES_CXX
     src/cpp/utils/utils.cpp)
 
 # DL executable
-message(STATUS "Creating Proto-Alg-DL executable...")
+message(STATUS "Creating Proto-Alg-DL executable")
 set(Proto-Alg-DL_SOURCE
     src/cpp/DL/DLParticipant.cpp
     src/cpp/DL/DL_main.cpp)
@@ -120,7 +120,7 @@ install(TARGETS Proto-Alg-DL
     RUNTIME DESTINATION ${BIN_INSTALL_DIR})
 
 # Engine executable
-message(STATUS "Creating Proto-Alg-Engine executable...")
+message(STATUS "Creating Proto-Alg-Engine executable")
 set(Proto-Alg-Engine_SOURCE
     src/cpp/Engine/EngineParticipant.cpp
     src/cpp/Engine/Engine_main.cpp)
@@ -134,7 +134,7 @@ install(TARGETS Proto-Alg-Engine
     RUNTIME DESTINATION ${BIN_INSTALL_DIR})
 
 # Discovery Server executable
-message(STATUS "Creating Proto-DiscoveryServer executable...")
+message(STATUS "Creating Proto-DiscoveryServer executable")
 set(Proto-DiscoveryServer_SOURCE
     src/cpp/DiscoveryServer/DiscoveryServerParticipant.cpp
     src/cpp/DiscoveryServer/DiscoveryServer_main.cpp)
@@ -150,7 +150,7 @@ install(TARGETS Proto-DiscoveryServer
 # TCP Direct Connection executables
 
 # Proto-Alg-DL_TCP executable
-message(STATUS "Creating Proto-Alg-DL_TCP executable...")
+message(STATUS "Creating Proto-Alg-DL_TCP executable")
 set(Proto-Alg-DL_TCP_SOURCE
     src/cpp/TCPconnection/DL/DLParticipant.cpp
     src/cpp/TCPconnection/DL/DL_main.cpp)
@@ -164,7 +164,7 @@ install(TARGETS Proto-Alg-DL_TCP
     RUNTIME DESTINATION ${BIN_INSTALL_DIR})
 
 # Proto-Alg-EngineL_TCP executable
-message(STATUS "Creating Proto-Alg-Engine_TCP executable...")
+message(STATUS "Creating Proto-Alg-Engine_TCP executable")
 set(Proto-Alg-Engine_TCP_SOURCE
     src/cpp/TCPconnection/Engine/EngineParticipant.cpp
     src/cpp/TCPconnection/Engine/Engine_main.cpp)
@@ -177,9 +177,15 @@ target_link_libraries(Proto-Alg-Engine_TCP fastrtps fastcdr foonathan_memory)
 install(TARGETS Proto-Alg-Engine_TCP
     RUNTIME DESTINATION ${BIN_INSTALL_DIR})
 
+# UPnP project
+
 if(UPNP)
     # Proto-UPnP executable
-    message(STATUS "Creating Proto-UPnP executable...")
+    message(STATUS "Creating Proto-UPnP executable")
+    message(STATUS "miniupnpc include directory: ${MINIUPNPC_INCLUDE_DIR}")
+    message(STATUS "miniupnpc library: ${MINIUPNPC_LIBRARY}")
+
+    # Executable configuration
     set(Proto-UPnP_SOURCE
         src/cpp/upnp/upnp.cpp)
 
