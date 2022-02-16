@@ -1,0 +1,9 @@
+{
+    "name": "amlip_types",
+    "type": "cmake",
+    "build-dependencies": [
+        "fastdds_python",
+        "fastcdr",
+        "fastrtps"
+    ]
+}

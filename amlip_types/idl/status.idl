@@ -1,0 +1,23 @@
+
+enum NodeKind
+{
+    UNDETERMINED,
+    DISCOVERY,
+    AGENT,
+    MAIN,
+    COMPUTATIONAL,
+    EDGE
+};
+
+enum StatusKind
+{
+    RUNNING,
+    DISABLED
+};
+
+struct Status
+{
+    string id;
+    NodeKind node_kind;
+    StatusKind status;
+};

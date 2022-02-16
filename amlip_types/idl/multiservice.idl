@@ -1,0 +1,41 @@
+
+#include "status.idl"
+
+struct Multiservice_RequestAvailability
+{
+    string requester_id;
+    unsigned long task_id;
+};
+
+struct Multiservice_TaskReference
+{
+    string requester_id;
+    unsigned long task_id;
+    string server_id;
+};
+
+struct Multiservice_Task_Data
+{
+    // This field is needed until FastDDSGen is fixed to allow empty classes
+    octet __useless;
+};
+
+struct Multiservice_Task
+{
+    Multiservice_TaskReference task_reference;
+    // This must be implemented in the subclass
+    // Multiservice_Task_Data data;
+};
+
+struct Multiservice_Solution_Data
+{
+    // This field is needed until FastDDSGen is fixed to allow empty classes
+    octet __useless;
+};
+
+struct Multiservice_Solution
+{
+    Multiservice_TaskReference task_reference;
+    // This must be implemented in the subclass
+    // Multiservice_Solution_Data data;
+};

@@ -9,17 +9,17 @@
         1. Kind: Node kind
         1. Status: Enable, Disable
 
-1. `aml/task/request`
-    1. Publish a request for computing a task
+1. `aml/job/request`
+    1. Publish a request for computing a job
 
-1. `aml/task/reply_available`
-    1. Answers a request for computing a task
+1. `aml/job/reply_available`
+    1. Answers a request for computing a job
 
-1. `aml/task/data`
+1. `aml/job/data`
     1. Task information to process
 
-1. `aml/task/solution`
-    1. Data solution from process a task
+1. `aml/job/solution`
+    1. Data solution from process a job
 
 1. `aml/inference/request`
     1. Publish a request for inference classification from data
@@ -49,13 +49,13 @@
     1. Id node
     1. Request id
 
-1. `aml::task::data`
+1. `aml::job::data`
     1. Id node
     1. Request id
     1. Target
     1. Task data
 
-1. `aml::task::solution`
+1. `aml::job::solution`
     1. Id node
     1. Request id
     1. Target
@@ -124,10 +124,10 @@
 | Topic Name                    | Topic Type               | Topic Kind     | Node Publish  | Node Subscribe |
 |-------------------------------|--------------------------|----------------|---------------|----------------|
 | aml/status                    | aml::status              | Update         | *             | Computational  |
-| aml/task/request              | aml::request             | Alarm          | Main          | Computational  |
-| aml/task/reply_available      | aml::reply               | Direct Message | Computational | Main           |
-| aml/task/data                 | aml::task::data          | Direct Message | Main          | Computational  |
-| aml/task/solution             | aml::task::solution      | Direct Message | Computational | Main           |
+| aml/job/request              | aml::request             | Alarm          | Main          | Computational  |
+| aml/job/reply_available      | aml::reply               | Direct Message | Computational | Main           |
+| aml/job/data                 | aml::job::data          | Direct Message | Main          | Computational  |
+| aml/job/solution             | aml::job::solution      | Direct Message | Computational | Main           |
 | aml/inference/request         | aml::request             | Alarm          | Edge          | Main           |
 | aml/inference/reply_available | aml::reply               | Direct message | Main          | Edge           |
 | aml/inference/data            | aml::inference::data     | Direct message | Edge          | Main           |
