@@ -18,13 +18,13 @@ DDS Participant to AML Computational Node.
 It gets Jobs, consumed them and return an atomization.
 """
 
-import enum
 import threading
+from enum import Enum
 
 import amlip_nodes.dds.network.aml_topic_names as topic_names
+from amlip_nodes.aml.aml_types import Job, JobSolution
 from amlip_nodes.dds.node.AmlDdsNode import AmlDdsNode
 from amlip_nodes.exception.Exception import InconsistencyException, NoDataException, StopException
-from amlip_nodes.aml.aml_types import Job
 
 import inference
 
@@ -33,10 +33,13 @@ import job
 import status
 
 
-class AsyncCallState(enum):
+class AsyncCallState(Enum):
+    """Async client call state."""
+
     RUNNING = 0
     STOPPED = 1
     FINISHED = 2
+    ALREADY_READ = 3
 
 
 class AmlDdsMainNode(AmlDdsNode):
@@ -44,7 +47,7 @@ class AmlDdsMainNode(AmlDdsNode):
 
     def __init__(self,
                  name,
-                 inference_process_callback,
+                 inference_process_callback=None,
                  domain=0):
         """Construct MainNodeParticipant object."""
         super().__init__(name, domain)
@@ -99,7 +102,18 @@ class AmlDdsMainNode(AmlDdsNode):
             self,
             job: Job):
         """Check if the job with this index has been answered already."""
-        return self.async_job_requests_[job.index]['status'] == AsyncCallState.FINISHED
+        if job.index in self.async_job_requests_.keys():
+            return (self.async_job_requests_[job.index]['status'] == AsyncCallState.FINISHED or
+                    self.async_job_requests_[job.index]['status'] == AsyncCallState.ALREADY_READ)
+        return False
+
+    def is_job_already_read(
+            self,
+            job: Job):
+        """Check if the job with this index has been answered already."""
+        if job.index in self.async_job_requests_.keys():
+            return self.async_job_requests_[job.index]['status'] == AsyncCallState.ALREADY_READ
+        return False
 
     def get_job_response(
             self,
@@ -108,7 +122,13 @@ class AmlDdsMainNode(AmlDdsNode):
         if not self.is_job_answered(job):
             raise NoDataException('')
         else:
-            return self.async_job_requests_[job.index]['solution']
+            if not self.is_job_already_read(job):
+                # In case the job has finished but it has not been read yet, "read it"
+                # This means to join the thread so it is not left orphan
+                self.async_job_requests_[job.index]['thread'].join()
+
+            # Return solution
+            return JobSolution.from_dds_data_type(self.async_job_requests_[job.index]['solution'])
 
     def send_job_async(
             self,
@@ -136,7 +156,7 @@ class AmlDdsMainNode(AmlDdsNode):
         """Routine to exectue an async request job."""
         try:
             # Send the job and wait for answer
-            solution = self.job_client_.send_request(job)
+            solution = self.job_client_.send_request(Job.to_dds_data_type(job))
 
             # Store solution
             self.async_job_requests_[job.index]['solution'] = solution

@@ -1,11 +1,13 @@
 """AML Main Node Implementation."""
-import pickle
+
 import random
 import time
 from pathlib import Path
+from threading import Condition, Thread
 
 from amlip_nodes.aml.aml_config import RESULTS_FOLDER
-from amlip_nodes.aml.aml_types import Atom, Duple, Job, ModelInfo
+from amlip_nodes.aml.aml_types import Atom, Duple, Job, JobSolution, ModelInfo
+from amlip_nodes.dds.node.AmlDdsMainNode import AmlDdsMainNode
 
 
 class MainNode:
@@ -22,86 +24,177 @@ class MainNode:
             self,
             name):
         """Create a default MainNode."""
+        # Internal variables
         self.name_ = name
         self.results_folder_ = Path(RESULTS_FOLDER)
+
+        # DDS variables
+        self.dds_main_node_ = AmlDdsMainNode(name)
+        self.dds_main_node_.init()
+
+        # Stop variables
         self.stop_ = False
+        self.cv_stop_ = Condition()
 
+        # Jobs
         self.job_number_ = 0
-        self.jobs_: list[Job] = []
+        self.pending_jobs_: list[Job] = []
+        self.solved_jobs_: list[JobSolution] = []
 
+        # Aml not used data
         self.model_info_ = ModelInfo()
         self.atoms_: list[Atom] = []
         self.duples_: list[Duple] = []
 
-        self.atomization = list[Job] = []
-
     def __del__(self):
-        """"""
-
+        """TODO comment."""
+        self.stop()
+        self._save_atomization_in_file()
 
     def stop(self):
-        """Set this Node as stopped."""
+        """Set this Node as stopped and notify threads."""
+        self.cv_stop_.acquire()
         self.stop_ = True
+        self.cv_stop_.notify_all()
+        self.cv_stop_.release()
 
-    def random_job_generator(
+    def run(self):
+        """TODO comment."""
+        # Thread to generate jobs randomly
+        random_job_generator_thread = \
+            Thread(target=self.random_job_generator_routine_)
+        random_job_generator_thread.start()
+
+        # Thread to periodically check jobs pending and answered
+        job_checker_thread = \
+            Thread(target=self.check_jobs_solutions_routine_)
+        job_checker_thread.start()
+
+        # Wait to stop
+        self.cv_stop_.acquire()
+        self.cv_stop_.wait_for(
+            predicate=lambda:
+                self.stop_)
+        self.cv_stop_.release()
+
+        # Wait for all threads
+        random_job_generator_thread.join()
+        job_checker_thread.join()
+
+    def random_job_generator_routine_(
             self,
             seed=1234,
-            time_range=(10, 5000)):
+            time_range_ms=(1000, 5000)):
         """
         Request for random jobs.
 
         Create random jobs to send them to Computing nodes.
-        The time between each node is also random between the range given
+        The time between each node is also random between the range given.
 
-        :param seed: seed for random generator.
+        Once stop is set, it will not stop until the time range has elapsed.
+
+        :param seed: seed for random generator
         :param time_range: range time elapsed in milliseconds to create a new job
         """
         while not self.stop_:
             # Create new Job
             new_job = Job(self.job_number_, MainNode.__random_job_generator())
             self.job_number_ += 1
-            self.jobs_.append(new_job)
+            self.pending_jobs_.append(new_job)
+
+            # Send job
+            self.dds_main_node_.send_job_async(new_job)
+
+            # Print new job sent
+            self.__print_send_job(new_job)
 
             # Sleep for a random time
-            sleep_time = random.randint(time_range)
-            print(f'AmlNode {self.name_} waiting for {sleep_time} ms.')
+            sleep_time = random.randint(time_range_ms[0], time_range_ms[1]) / 1000
+            print(f'AmlNode {self.name_} generating job (approximately {sleep_time} ms).')
             time.sleep(sleep_time)
 
-    def _create_new_random_job(self):
-        """Create a new job."""
-        new_job = Job(self.job_number_, MainNode.__random_job_generator())
-        new_job.
+    def check_jobs_solutions_routine_(
+            self,
+            period_time=5):
+        """
+        Check if any pending job has been answered.
 
-    def _convert_job_data_type_to_dds(
-            job: Job):
-        """Convert a job data type to the type expected to send in DDS."""
-        # Get job string
-        result = str(job)
-        # Transform string in octet array
-        data = list(result)
-        return data
+        Once stop is set, it will not stop until the time range has elapsed.
 
-    def save_atomization_in_file(self, file_name):
-        with open(file_name.with_suffix(".aml"), "rb") as inputfile:
-            self.model_info = pickle.load(inputfile)
-            self.atomization = []
-            atomization_len = pickle.load(inputfile)
-            for _ in range(atomization_len):
-                at = pickle.load(inputfile)
-                self.atomization.append(at)
+        :param period_time: time to wait between checks
 
-    jobs = [
-        'If a Lone Star Tick bites you, you may become allergic to red meat.',
-        'The national animal of Scotland is the unicorn.',
-        'The couple in the painting "American Gothic" are actually father and daughter and not husband and wife.',
-        'Red, green, yellow, and orange bell peppers are all the same type of pepper with their color difference being caused by being at different stages of ripeness.',
-        'Most people have an above-average number of arms.',
-        'The Federal Emergency Management Agency (FEMA) uses Waffle House Restaurants being open or closed as one way to determine the effect of a storm and the likely scale of assistance required for disaster recovery.',
-        'German Chocolate Cake has nothing to do with Germany. It was named after English-American Samuel German who developed a formulation of dark baking chocolate that came to be used in the cake recipe.',
-        'If sound could travel through space, the noise that the sun would be the equivalent to a train horn from 1 meter away.',
-        'In space, you dont need welding materials to get two metals to fuse. They will do it on their own if you place them close enough together.',
-        'The US has lost 6 nuclear weapons.',
-    ]
+        :todo: in the future it should not wait for a time but with a dds method in DdsAmlMainNode
+        """
+
+        while not self.stop_:
+
+            print(f'AmlNode {self.name_} checking job results.')
+
+            not_solved_jobs_indexes = []
+
+            # For each pending job, check if solution has arrived
+            # Iterate backwards the list so it can erase elements at the same time as iterating
+            for i in range(len(self.pending_jobs_) - 1, -1, -1):
+                pending_job = self.pending_jobs_[i]
+
+                # Check it in Dds Node by checking the index
+                if self.dds_main_node_.is_job_answered(pending_job):
+                    # Job Solved!
+                    job_solution = self.dds_main_node_.get_job_response(pending_job)
+
+                    # Print result
+                    self.__print_solved_job(pending_job, job_solution)
+
+                    # Removing pending job
+                    del self.pending_jobs_[i]
+
+                    # Store it as solved job
+                    self.solved_jobs_.append(job_solution)
+
+                else:
+                    # Jos is still pending
+                    not_solved_jobs_indexes.append(pending_job.index)
+
+            self.__print_not_yet_solved_job_indexes(not_solved_jobs_indexes)
+            # Sleep for period time
+            time.sleep(period_time)
+
+    def _save_atomization_in_file(
+            self,
+            file_name: str = 'result_atomization.aml'):
+        """TODO comment."""
+        # TODO
+        print(f'This is supposed to save the results in file {self.results_folder_}/{file_name}.')
+
+    # Variables to create random jobs
+    subjects_ = ['i ', 'he ', 'she ', 'jack ', 'tim ']
+    verbs_ = ['was ', 'is ']
+    nouns_ = ['playing.', 'reading.', 'talking.', 'dancing.', 'speaking.']
 
     def __random_job_generator() -> str:
-        return random.choice(MainNode.jobs)
+        return random.choice(MainNode.subjects_) + \
+            random.choice(MainNode.verbs_) + \
+            random.choice(MainNode.nouns_)
+
+    def __print_send_job(
+            self,
+            job: Job):
+        print(
+            f'Main Node {self.name_} has created a new job:\n'
+            f'  JOB: {job}')
+
+    def __print_solved_job(
+            self,
+            job: Job,
+            solution: JobSolution):
+        print(
+            f'Main Node {self.name_} has received the solution to job:\n'
+            f'  JOB: {job}\n'
+            f' with the result:\n'
+            f'  SOLUTION: {solution}')
+
+    def __print_not_yet_solved_job_indexes(
+            self,
+            not_solved_jobs_indexes: list):
+        print(
+            f'Main Node {self.name_} has not yet solution for jobs: {not_solved_jobs_indexes}')

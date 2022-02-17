@@ -11,16 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-TODO comment
-"""
+"""AML Node Id implementation."""
 
 import uuid
 
 
 class AmlNodeId():
     """
-    TODO comment
+    Common class to store a Node unique id.
+
+    It uses uuid class to generate unique ids.
     """
 
     def get_new_id():
@@ -30,14 +30,20 @@ class AmlNodeId():
     def __init__(
             self,
             uuid_data=None):
-        """TODO comment."""
+        """Create a new unique random Aml Id."""
         # In case id is not provided, create a new one
         if uuid_data is None:
             uuid_data = AmlNodeId.get_new_id()
         self.uuid_data_ = uuid_data
 
     def id_str(self):
+        """Return uuid in string format."""
         return str(self.uuid_data_)
 
     def __eq__(self, __o: object) -> bool:
-        return self.id_value() == __o.id_value()
+        """Check if two ids are equal."""
+        return self.id_str() == __o.id_str()
+
+    def __str__(self):
+        """Serialize id to string by retrieving uuid string."""
+        return self.id_str()
