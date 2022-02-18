@@ -52,7 +52,15 @@ class MainNode:
         self._save_atomization_in_file()
 
     def stop(self):
-        """Set this Node as stopped and notify threads."""
+        """
+        Stop this node.
+
+        Stop its internal DDS entities.
+        Set variable stop as true.
+        Awake threads waiting for stop.
+        """
+        self.dds_main_node_.stop()
+
         self.cv_stop_.acquire()
         self.stop_ = True
         self.cv_stop_.notify_all()
@@ -131,6 +139,7 @@ class MainNode:
             print(f'AmlNode {self.name_} checking job results.')
 
             not_solved_jobs_indexes = []
+            timeout_indexes = []
 
             # For each pending job, check if solution has arrived
             # Iterate backwards the list so it can erase elements at the same time as iterating
@@ -151,11 +160,20 @@ class MainNode:
                     # Store it as solved job
                     self.solved_jobs_.append(job_solution)
 
+                elif self.dds_main_node_.is_job_timeout(pending_job):
+                    # Job request has timeout
+                    timeout_indexes.append(pending_job.index)
+                    del self.pending_jobs_[i]
+
                 else:
-                    # Jos is still pending
+                    # Job is still pending
                     not_solved_jobs_indexes.append(pending_job.index)
 
-            self.__print_not_yet_solved_job_indexes(not_solved_jobs_indexes)
+            if len(not_solved_jobs_indexes) > 0:
+                self.__print_not_yet_solved_job_indexes(not_solved_jobs_indexes)
+            if len(timeout_indexes) > 0:
+                self.__print_timeout_job_indexes(timeout_indexes)
+
             # Sleep for period time
             time.sleep(period_time)
 
@@ -167,7 +185,7 @@ class MainNode:
         print(f'This is supposed to save the results in file {self.results_folder_}/{file_name}.')
 
     # Variables to create random jobs
-    subjects_ = ['i ', 'he ', 'she ', 'jack ', 'tim ']
+    subjects_ = ['he ', 'she ', 'jack ', 'tim ']
     verbs_ = ['was ', 'is ']
     nouns_ = ['playing.', 'reading.', 'talking.', 'dancing.', 'speaking.']
 
@@ -180,6 +198,7 @@ class MainNode:
             self,
             job: Job):
         print(
+            f'\n'
             f'Main Node {self.name_} has created a new job:\n'
             f'  JOB: {job}')
 
@@ -188,6 +207,7 @@ class MainNode:
             job: Job,
             solution: JobSolution):
         print(
+            f'\n'
             f'Main Node {self.name_} has received the solution to job:\n'
             f'  JOB: {job}\n'
             f' with the result:\n'
@@ -197,4 +217,12 @@ class MainNode:
             self,
             not_solved_jobs_indexes: list):
         print(
+            f'\n'
             f'Main Node {self.name_} has not yet solution for jobs: {not_solved_jobs_indexes}')
+
+    def __print_timeout_job_indexes(
+            self,
+            timeout_jobs_indexes: list):
+        print(
+            f'\n'
+            f'Main Node {self.name_} has discarded jobs {timeout_jobs_indexes} for timeout.')

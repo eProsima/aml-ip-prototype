@@ -29,6 +29,7 @@ class AmlParticipant():
 
         Create every internal variable for class I_AmlNodeParticipant.
         """
+        print(f'Creating AmlParticipant {name}.')
         # Participant internal values
         self.name_ = name
 

@@ -39,6 +39,7 @@ setup(
         'console_scripts': [
             'amlip_main = amlip_nodes.tool.run_mainNode:main',
             'amlip_computing = amlip_nodes.tool.run_computingNode:main',
+            'amlip_status = amlip_nodes.tool.run_statusNode:main',
         ],
     },
 )

@@ -19,10 +19,11 @@ It handles a DDS DataReader and a Subscriber.
 """
 
 from threading import Condition
+from time import sleep
 
 from amlip_nodes.dds.entity.AmlParticipant import AmlParticipant
 from amlip_nodes.dds.entity.AmlTopic import AmlTopic
-from amlip_nodes.exception.Exception import NoDataException, StopException
+from amlip_nodes.exception.Exception import NoDataException, StopException, TimeoutException
 
 import fastdds
 
@@ -47,6 +48,10 @@ class AmlReader(fastdds.DataReaderListener):
 
         It creates a DDS Subscriber and inside a DDS DataReader.
         """
+        super().__init__()
+
+        print(f'Creating AmlReader {aml_topic.name()}, {aml_topic.type_name()}.')
+
         # Topic
         self.aml_topic_ = aml_topic
         # Listener
@@ -63,7 +68,10 @@ class AmlReader(fastdds.DataReaderListener):
         self.reader_ = self.subscriber_.create_datareader(
             aml_topic.dds_topic(),
             datareader_qos,
-            None)
+            self)
+
+        # Wait for a minimum time so the entity is created and discovered
+        sleep(0.2)
 
     def on_data_available(self, reader):
         """
@@ -79,6 +87,7 @@ class AmlReader(fastdds.DataReaderListener):
         info = fastdds.SampleInfo()
         data = self.aml_topic_.new_object()
         reader.take_next_sample(data, info)
+
         self.msgs_to_read_.append(data)
 
         # Notify in Condition in wait and release it
@@ -87,11 +96,11 @@ class AmlReader(fastdds.DataReaderListener):
 
     def stop(self):
         """Set entity as stopped and awake every thread waiting for messages."""
-        # Set object as stopped
-        self.stop_ = True
 
         # Get Condition in wait, notify in Condition in wait and release it
         self.cv_wait_data_.acquire()
+        # Set object as stopped
+        self.stop_ = True
         self.cv_wait_data_.notify_all()
         self.cv_wait_data_.release()
 
@@ -99,6 +108,7 @@ class AmlReader(fastdds.DataReaderListener):
         """Get next data available and remove it from received data."""
         if self.data_available():
             return self.msgs_to_read_.pop(0)
+
         else:
             # No data available to read
             raise NoDataException('Ask for data in an empty Reader.')
@@ -123,5 +133,9 @@ class AmlReader(fastdds.DataReaderListener):
         self.cv_wait_data_.release()
 
         # If awake due to a stop
-        if not self.data_available():
+        if self.stop_:
             raise StopException('Stopped Reader while waiting.')
+
+        # If awake due to no data availble => timeout
+        if not self.data_available():
+            raise TimeoutException('Timeout waiting data.')

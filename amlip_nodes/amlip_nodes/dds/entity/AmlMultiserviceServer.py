@@ -28,6 +28,8 @@ from amlip_nodes.dds.entity.AmlWriter import AmlWriter
 from amlip_nodes.dds.node.AmlNodeId import AmlNodeId
 from amlip_nodes.exception.Exception import InconsistencyException
 
+MAX_TIMEOUT_DATA_MSSERVER = 10
+
 
 class AmlMultiserviceServer():
     """
@@ -54,6 +56,7 @@ class AmlMultiserviceServer():
             If callback is None, it will require to specify the callback when calling
             process request.
         """
+        print(f'Creating AmlMultiserviceServer {service_name}.')
         # Internal elements
         self.node_id_ = node_id
         self.name_ = service_name
@@ -130,7 +133,8 @@ class AmlMultiserviceServer():
                 callback = self.callback_
 
         # Wait for an availability request and get the client and task ids when one is available
-        requester_id, task_id = self._wait_request_availability()
+        request = self._wait_request_availability()
+        requester_id, task_id = request.requester_id(), request.task_id()
 
         # If the task has been already processed as chosen, skip it
         # Note: this could be done as well in _wait_request_availability
@@ -149,12 +153,12 @@ class AmlMultiserviceServer():
         data_received = self._wait_task(requester_id, task_id)
 
         # Send solution
-        self._send_solution(requester_id, task_id, data_received)
+        self._send_solution(requester_id, task_id, data_received.data())
 
         # Request has been processed
         return True
 
-    def _wait_request_availability(self, task_id):
+    def _wait_request_availability(self):
         """
         Wait till a client requests a server.
 
@@ -162,18 +166,19 @@ class AmlMultiserviceServer():
         """
         while True:
             # Wait for a message
-            self.aml_reader_request_availability_.wait_to_data_receive()
+            self.aml_reader_request_availability_.wait_to_data_receive(MAX_TIMEOUT_DATA_MSSERVER)
 
             # Once a message is get, send that this server is available
-            request_received = self.aml_reader_reply_available_.read()
-            return request_received.requester_id(), request_received.task_id()
+            request_received = self.aml_reader_request_availability_.read()
+            # WARNING: do not return only the data because this object will be destroyed
+            return request_received
 
     def _send_reply_available(self, requester_id, task_id):
         """Create a reply data to a client that is asking."""
         # Get data and fill it
-        reply_data = self.aml_writer_reply_.new_data()
+        reply_data = self.aml_writer_reply_available_.new_data()
         reply_data.requester_id(requester_id)
-        reply_data.request_id(task_id)
+        reply_data.task_id(task_id)
         reply_data.server_id(self.node_id_.id_str())
 
         # Send message
@@ -187,7 +192,7 @@ class AmlMultiserviceServer():
         """
         while True:
             # Wait for a message
-            self.aml_reader_task_target_.wait_to_data_receive()
+            self.aml_reader_task_target_.wait_to_data_receive(MAX_TIMEOUT_DATA_MSSERVER)
 
             # Get every message till a server answering this id task and client
             while self.aml_reader_task_target_.data_available():
@@ -214,7 +219,7 @@ class AmlMultiserviceServer():
         """
         while True:
             # Wait for a message
-            self.aml_reader_task_.wait_to_data_receive()
+            self.aml_reader_task_.wait_to_data_receive(MAX_TIMEOUT_DATA_MSSERVER)
 
             # Get every message till a server answering this id task and client
             while self.aml_reader_task_.data_available():
@@ -231,7 +236,8 @@ class AmlMultiserviceServer():
                     raise InconsistencyException('Task targeted to this server is sent to other.')
                 else:
                     # Get data from task message
-                    return task_received.data()
+                    # WARNING: do not return only the data() because this object will be destroyed
+                    return task_received
 
     def _send_solution(self, requester_id, task_id, task_data):
         """
@@ -248,7 +254,7 @@ class AmlMultiserviceServer():
         solution_data = self.aml_writer_solution_.new_data()
         task_reference_ = solution_data.task_reference()
         task_reference_.requester_id(requester_id)
-        task_reference_.request_id(task_id)
+        task_reference_.task_id(task_id)
         task_reference_.server_id(self.node_id_.id_str())
         solution_data.task_reference(task_reference_)
 

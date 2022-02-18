@@ -24,7 +24,8 @@ from enum import Enum
 import amlip_nodes.dds.network.aml_topic_names as topic_names
 from amlip_nodes.aml.aml_types import Job, JobSolution
 from amlip_nodes.dds.node.AmlDdsNode import AmlDdsNode
-from amlip_nodes.exception.Exception import InconsistencyException, NoDataException, StopException
+from amlip_nodes.exception.Exception import \
+    InconsistencyException, NoDataException, StopException, TimeoutException
 
 import inference
 
@@ -33,13 +34,14 @@ import job
 import status
 
 
-class AsyncCallState(Enum):
-    """Async client call state."""
+class AsyncCallStatus(Enum):
+    """Async client call status."""
 
     RUNNING = 0
     STOPPED = 1
     FINISHED = 2
     ALREADY_READ = 3
+    TIMEOUT = 4
 
 
 class AmlDdsMainNode(AmlDdsNode):
@@ -103,8 +105,16 @@ class AmlDdsMainNode(AmlDdsNode):
             job: Job):
         """Check if the job with this index has been answered already."""
         if job.index in self.async_job_requests_.keys():
-            return (self.async_job_requests_[job.index]['status'] == AsyncCallState.FINISHED or
-                    self.async_job_requests_[job.index]['status'] == AsyncCallState.ALREADY_READ)
+            return (self.async_job_requests_[job.index]['status'] == AsyncCallStatus.FINISHED or
+                    self.async_job_requests_[job.index]['status'] == AsyncCallStatus.ALREADY_READ)
+        return False
+
+    def is_job_timeout(
+            self,
+            job: Job):
+        """Check if the job with this index has been closed by timeout."""
+        if job.index in self.async_job_requests_.keys():
+            return self.async_job_requests_[job.index]['status'] == AsyncCallStatus.TIMEOUT
         return False
 
     def is_job_already_read(
@@ -112,7 +122,7 @@ class AmlDdsMainNode(AmlDdsNode):
             job: Job):
         """Check if the job with this index has been answered already."""
         if job.index in self.async_job_requests_.keys():
-            return self.async_job_requests_[job.index]['status'] == AsyncCallState.ALREADY_READ
+            return self.async_job_requests_[job.index]['status'] == AsyncCallStatus.ALREADY_READ
         return False
 
     def get_job_response(
@@ -128,7 +138,7 @@ class AmlDdsMainNode(AmlDdsNode):
                 self.async_job_requests_[job.index]['thread'].join()
 
             # Return solution
-            return JobSolution.from_dds_data_type(self.async_job_requests_[job.index]['solution'])
+            return self.async_job_requests_[job.index]['solution']
 
     def send_job_async(
             self,
@@ -146,9 +156,11 @@ class AmlDdsMainNode(AmlDdsNode):
         self.async_job_requests_[job.index] = {}
 
         # Create thread and store it
-        request_thread = threading.Thread(target=self._send_job_async_thread_routine, args=job)
+        request_thread = threading.Thread(target=self._send_job_async_thread_routine, args=(job,))
         self.async_job_requests_[job.index]['thread'] = request_thread
-        self.async_job_requests_[job.index]['status'] = AsyncCallState.RUNNING
+        self.async_job_requests_[job.index]['status'] = AsyncCallStatus.RUNNING
+
+        request_thread.start()
 
     def _send_job_async_thread_routine(
             self,
@@ -158,10 +170,16 @@ class AmlDdsMainNode(AmlDdsNode):
             # Send the job and wait for answer
             solution = self.job_client_.send_request(Job.to_dds_data_type(job))
 
+            print(f'Solution get for job {job.index}')
+
             # Store solution
-            self.async_job_requests_[job.index]['solution'] = solution
-            self.async_job_requests_[job.index]['state'] = AsyncCallState.FINISHED
+            self.async_job_requests_[job.index]['solution'] = JobSolution.from_dds_data_type(solution.data())
+            self.async_job_requests_[job.index]['status'] = AsyncCallStatus.FINISHED
 
         except StopException:
             # Stopped before the answer arrives, set it as stopped
-            self.async_job_requests_[job.index]['state'] = AsyncCallState.STOPPED
+            self.async_job_requests_[job.index]['status'] = AsyncCallStatus.STOPPED
+
+        except TimeoutException:
+            # Some of the messages has not been answered in enough time
+            self.async_job_requests_[job.index]['status'] = AsyncCallStatus.TIMEOUT

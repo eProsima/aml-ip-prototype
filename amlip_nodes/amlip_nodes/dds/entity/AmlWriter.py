@@ -18,6 +18,8 @@ This kind of entity is able to Write DDS messages.
 It handles a DDS DataWriter and a Publisher.
 """
 
+from time import sleep
+
 from amlip_nodes.dds.entity.AmlParticipant import AmlParticipant
 from amlip_nodes.dds.entity.AmlTopic import AmlTopic
 
@@ -38,6 +40,7 @@ class AmlWriter():
 
         It creates a DDS Publisher and inside a DDS DataWriter.
         """
+        print(f'Creating AmlWriter {aml_topic.name()}, {aml_topic.type_name()}.')
         # Topic
         self.aml_topic_ = aml_topic
 
@@ -50,6 +53,9 @@ class AmlWriter():
             aml_topic.dds_topic(),
             datawriter_qos,
             None)
+
+        # Wait for a minimum time so the entity is created and discovered
+        sleep(0.2)
 
     def write(self, data):
         """

@@ -2,13 +2,11 @@
 
 import random
 import time
-from pathlib import Path
 from threading import Condition, Thread
 
-from amlip_nodes.aml.aml_config import RESULTS_FOLDER
-from amlip_nodes.aml.aml_types import Atom, Duple, Job, JobSolution, ModelInfo
+from amlip_nodes.aml.aml_types import Job, JobSolution
 from amlip_nodes.dds.node.AmlDdsComputingNode import AmlDdsComputingNode
-from amlip_nodes.exception.Exception import StopException
+from amlip_nodes.exception.Exception import StopException, TimeoutException
 
 
 class ComputingNode:
@@ -24,7 +22,7 @@ class ComputingNode:
     def __init__(
             self,
             name):
-        """Create a default MainNode."""
+        """Create a default ComputingNode."""
         # Internal variables
         self.name_ = name
         self.time_range_ms_ = (2000, 7000)
@@ -32,7 +30,7 @@ class ComputingNode:
         # DDS variables
         self.dds_computing_node_ = AmlDdsComputingNode(
             name=name,
-            job_process_callback=self._job_process_callback)
+            job_process_callback=self._job_process_callback_dds_type)
         self.dds_computing_node_.init()
 
         # Stop variables
@@ -44,7 +42,15 @@ class ComputingNode:
         self.stop()
 
     def stop(self):
-        """Set this Node as stopped and notify threads."""
+        """
+        Stop this node.
+
+        Stop its internal DDS entities.
+        Set variable stop as true.
+        Awake threads waiting for stop.
+        """
+        self.dds_computing_node_.stop()
+
         self.cv_stop_.acquire()
         self.stop_ = True
         self.cv_stop_.notify_all()
@@ -69,8 +75,7 @@ class ComputingNode:
 
     def _calculate_job_solution_routine(
             self,
-            seed=4321,
-            time_range_ms=(2000, 7000)):
+            seed=4321):
         """
         Request for random jobs.
 
@@ -86,11 +91,22 @@ class ComputingNode:
 
             try:
                 # Try to answer to a new job
+                print(f'{self.name_} waiting to process a job.')
                 self.dds_computing_node_.process_job()
 
             except StopException:
                 print(f'{self.name_} stopped while calculating a solution.')
                 break
+
+            except TimeoutException:
+                print(f'{self.name_} timeout waiting for client.')
+                continue
+
+    def _job_process_callback_dds_type(
+            self,
+            job_data):
+        """TODO comment."""
+        return self._job_process_callback(Job.from_dds_data_type(job_data)).to_dds_data_type()
 
     def _job_process_callback(
             self,

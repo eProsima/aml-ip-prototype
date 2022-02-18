@@ -38,11 +38,13 @@ using namespace eprosima::fastcdr::exception;
 
 Status::Status()
 {
-    // m_id com.eprosima.idl.parser.typecode.StringTypeCode@1184ab05
+    // m_id com.eprosima.idl.parser.typecode.StringTypeCode@1b1473ab
     m_id ="";
-    // m_node_kind com.eprosima.idl.parser.typecode.EnumTypeCode@3aefe5e5
+    // m_name com.eprosima.idl.parser.typecode.StringTypeCode@7880cdf3
+    m_name ="";
+    // m_node_kind com.eprosima.idl.parser.typecode.EnumTypeCode@5be6e01c
     m_node_kind = ::UNDETERMINED;
-    // m_status com.eprosima.idl.parser.typecode.EnumTypeCode@149e0f5d
+    // m_status com.eprosima.idl.parser.typecode.EnumTypeCode@1c93084c
     m_status = ::RUNNING;
 
 }
@@ -52,12 +54,14 @@ Status::~Status()
 
 
 
+
 }
 
 Status::Status(
         const Status& x)
 {
     m_id = x.m_id;
+    m_name = x.m_name;
     m_node_kind = x.m_node_kind;
     m_status = x.m_status;
 }
@@ -66,6 +70,7 @@ Status::Status(
         Status&& x)
 {
     m_id = std::move(x.m_id);
+    m_name = std::move(x.m_name);
     m_node_kind = x.m_node_kind;
     m_status = x.m_status;
 }
@@ -75,6 +80,7 @@ Status& Status::operator =(
 {
 
     m_id = x.m_id;
+    m_name = x.m_name;
     m_node_kind = x.m_node_kind;
     m_status = x.m_status;
 
@@ -86,6 +92,7 @@ Status& Status::operator =(
 {
 
     m_id = std::move(x.m_id);
+    m_name = std::move(x.m_name);
     m_node_kind = x.m_node_kind;
     m_status = x.m_status;
 
@@ -96,7 +103,7 @@ bool Status::operator ==(
         const Status& x) const
 {
 
-    return (m_id == x.m_id && m_node_kind == x.m_node_kind && m_status == x.m_status);
+    return (m_id == x.m_id && m_name == x.m_name && m_node_kind == x.m_node_kind && m_status == x.m_status);
 }
 
 bool Status::operator !=(
@@ -110,6 +117,8 @@ size_t Status::getMaxCdrSerializedSize(
 {
     size_t initial_alignment = current_alignment;
 
+
+    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
 
@@ -133,6 +142,8 @@ size_t Status::getCdrSerializedSize(
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.id().size() + 1;
 
+    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.name().size() + 1;
+
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
 
 
@@ -148,6 +159,7 @@ void Status::serialize(
 {
 
     scdr << m_id;
+    scdr << m_name;
     scdr << (uint32_t)m_node_kind;
     scdr << (uint32_t)m_status;
 
@@ -158,6 +170,7 @@ void Status::deserialize(
 {
 
     dcdr >> m_id;
+    dcdr >> m_name;
     {
         uint32_t enum_value = 0;
         dcdr >> enum_value;
@@ -208,6 +221,43 @@ const std::string& Status::id() const
 std::string& Status::id()
 {
     return m_id;
+}
+/*!
+ * @brief This function copies the value in member name
+ * @param _name New value to be copied in member name
+ */
+void Status::name(
+        const std::string& _name)
+{
+    m_name = _name;
+}
+
+/*!
+ * @brief This function moves the value in member name
+ * @param _name New value to be moved in member name
+ */
+void Status::name(
+        std::string&& _name)
+{
+    m_name = std::move(_name);
+}
+
+/*!
+ * @brief This function returns a constant reference to member name
+ * @return Constant reference to member name
+ */
+const std::string& Status::name() const
+{
+    return m_name;
+}
+
+/*!
+ * @brief This function returns a reference to member name
+ * @return Reference to member name
+ */
+std::string& Status::name()
+{
+    return m_name;
 }
 /*!
  * @brief This function sets a value in member node_kind
@@ -276,6 +326,7 @@ size_t Status::getKeyMaxCdrSerializedSize(
 
 
 
+
     return current_align;
 }
 
@@ -288,5 +339,5 @@ void Status::serializeKey(
         eprosima::fastcdr::Cdr& scdr) const
 {
     (void) scdr;
-       
+        
 }

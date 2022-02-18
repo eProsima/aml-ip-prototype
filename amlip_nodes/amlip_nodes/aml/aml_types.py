@@ -19,41 +19,64 @@ class Job:
         """Serialize a Job into a string."""
         return '{' + str(self.index) + ': <' + self.data + '>}'
 
-    def to_dds_data_type(self):
-        """Convert a job data type to the type expected to send in DDS."""
+    def to_dds_data_type(self) -> job.Job_Task_Data:
+        """Convert a Job data type to the octet array expected to send in DDS."""
+        # Result
         dds_data = job.Job_Task_Data()
-        # Get string of Job
-        job_str = str(self)
+
         # Store this string in bytes
-        dds_data.job().push_back(3)
-        #dds_data.job(list(job_str))
+        for character in list(str(self)):
+            dds_data.job().push_back(ord(character))
         return dds_data
+
+    @staticmethod
+    def from_dds_data_type(
+            dds_job: job.Job_Task_Data) -> 'Job':
+        """
+        Convert a Solution Data octet array to a new JobSolution object.
+
+        :note: using '' (str) to declare return value is done for forwarding declaration
+        """
+        # Convert job data to string byte by byte
+        result_str = ''
+        for byte_value in dds_job.job():
+            result_str += chr(byte_value)
+        result_str_split = result_str.split(':')
+
+        # Get JobSolution data
+        return Job(int(result_str_split[0][1:]), result_str_split[1][2:-2])
 
 
 class JobSolution (Job):
     """TODO comment."""
 
-    def __init__(
-            self,
-            index: int,
-            data: str):
-        """TODO comment."""
-        super().__init__(index, data)
+    def to_dds_data_type(self) -> job.Job_Solution_Data:
+        """Convert a JobSolution data type to the octet array expected to send in DDS."""
+        # Result
+        dds_data = job.Job_Solution_Data()
 
-    def __str__(self):
-        """Serialize a JobSolution into a string."""
-        return str(self.index) + '/' + self.data
+        # Store this string in bytes
+        for character in list(str(self)):
+            dds_data.solution().push_back(ord(character))
+        return dds_data
 
-    def from_dds_data_type(dds_job):
-        """Convert a job data type to the type expected to send in DDS."""
-        # Convert solution to string
+    @staticmethod
+    def from_dds_data_type(
+            dds_job: job.Job_Solution_Data) -> 'JobSolution':
+        """
+        Convert a Solution Data octet array to a new JobSolution object.
+
+        :note: using '' (str) to declare return value is done for forwarding declaration
+        """
+        # Convert solution data to string byte by byte
         result_str = ''
-        for c in dds_job:
-            result_str += ''
-        result_str_split = result_str.split('/')
+        for byte_value in dds_job.solution():
+            result_str += chr(byte_value)
+        result_str_split = result_str.split(':')
 
         # Get JobSolution data
-        return JobSolution(int(result_str_split[0]), result_str_split[1])
+        return JobSolution(int(result_str_split[0][1:]), result_str_split[1][2:-2])
+
 
 class Bitarray(set):
     pass

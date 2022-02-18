@@ -90,14 +90,19 @@ class AmlDdsNode():
 
         print(f'AML Participant {self.name_} created.')
 
-    def _publish_status_data(self):
+    def _publish_status_data(self, alive=True):
         """Write in Status writer the actual status of the entity."""
         # Get data type object
         data = self.status_writer_.new_data()
         # Fill id
         data.id(self.aml_id().id_str())
+        # Fill name
+        data.name(self.name_)
         # Fill status
-        data.status(status.RUNNING)
+        if alive:
+            data.status(status.RUNNING)
+        else:
+            data.status(status.DISABLED)
         # Fill node kind getting it from override method
         data.node_kind(self._node_kind())
 
@@ -414,4 +419,5 @@ class AmlDdsNode():
 
         So far, every entity is destroyed by itself.
         """
+        self._publish_status_data(alive=False)
         print(f'Destroying Node {self.name_}.')

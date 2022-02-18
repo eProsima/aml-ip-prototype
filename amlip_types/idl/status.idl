@@ -6,7 +6,8 @@ enum NodeKind
     AGENT,
     MAIN,
     COMPUTATIONAL,
-    EDGE
+    EDGE,
+    STATUS
 };
 
 enum StatusKind
@@ -18,6 +19,7 @@ enum StatusKind
 struct Status
 {
     string id;
+    string name;
     NodeKind node_kind;
     StatusKind status;
 };

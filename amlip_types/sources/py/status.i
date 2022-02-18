@@ -75,6 +75,14 @@ typedef unsigned long uint64_t;
 %ignore Status::id();
 %rename("%s") Status::id() const;
 
+%ignore Status::name(std::string&&);
+
+// Overloaded getter methods shadow each other and are equivalent in python
+// Const accesors produced constant enums instead of arrays/dictionaries when used
+// We ignore them to prevent this
+%ignore Status::name();
+%rename("%s") Status::name() const;
+
 %ignore Status::node_kind(NodeKind&&);
 
 // Overloaded getter methods shadow each other and are equivalent in python

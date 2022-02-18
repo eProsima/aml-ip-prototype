@@ -36,9 +36,9 @@ using namespace eprosima::fastcdr::exception;
 
 Multiservice_RequestAvailability::Multiservice_RequestAvailability()
 {
-    // m_requester_id com.eprosima.idl.parser.typecode.StringTypeCode@309e345f
+    // m_requester_id com.eprosima.idl.parser.typecode.StringTypeCode@18ce0030
     m_requester_id ="";
-    // m_task_id com.eprosima.idl.parser.typecode.PrimitiveTypeCode@56a6d5a6
+    // m_task_id com.eprosima.idl.parser.typecode.PrimitiveTypeCode@4445629
     m_task_id = 0;
 
 }
@@ -237,11 +237,11 @@ void Multiservice_RequestAvailability::serializeKey(
 
 Multiservice_TaskReference::Multiservice_TaskReference()
 {
-    // m_requester_id com.eprosima.idl.parser.typecode.StringTypeCode@18ce0030
+    // m_requester_id com.eprosima.idl.parser.typecode.StringTypeCode@45b9a632
     m_requester_id ="";
-    // m_task_id com.eprosima.idl.parser.typecode.PrimitiveTypeCode@4445629
+    // m_task_id com.eprosima.idl.parser.typecode.PrimitiveTypeCode@25d250c6
     m_task_id = 0;
-    // m_server_id com.eprosima.idl.parser.typecode.StringTypeCode@45b9a632
+    // m_server_id com.eprosima.idl.parser.typecode.StringTypeCode@4df50bcc
     m_server_id ="";
 
 }
@@ -489,7 +489,7 @@ void Multiservice_TaskReference::serializeKey(
 
 Multiservice_Task_Data::Multiservice_Task_Data()
 {
-    // m__useless com.eprosima.idl.parser.typecode.PrimitiveTypeCode@25d250c6
+    // m__useless com.eprosima.idl.parser.typecode.PrimitiveTypeCode@6b26e945
     m__useless = 0;
 
 }
@@ -635,7 +635,7 @@ void Multiservice_Task_Data::serializeKey(
 
 Multiservice_Task::Multiservice_Task()
 {
-    // m_task_reference com.eprosima.fastdds.idl.parser.typecode.StructTypeCode@4df50bcc
+    // m_task_reference com.eprosima.fastdds.idl.parser.typecode.StructTypeCode@63a65a25
 
 
 }
@@ -788,7 +788,7 @@ void Multiservice_Task::serializeKey(
 
 Multiservice_Solution_Data::Multiservice_Solution_Data()
 {
-    // m__useless com.eprosima.idl.parser.typecode.PrimitiveTypeCode@6b26e945
+    // m__useless com.eprosima.idl.parser.typecode.PrimitiveTypeCode@54c562f7
     m__useless = 0;
 
 }
@@ -934,7 +934,7 @@ void Multiservice_Solution_Data::serializeKey(
 
 Multiservice_Solution::Multiservice_Solution()
 {
-    // m_task_reference com.eprosima.fastdds.idl.parser.typecode.StructTypeCode@4df50bcc
+    // m_task_reference com.eprosima.fastdds.idl.parser.typecode.StructTypeCode@63a65a25
 
 
 }

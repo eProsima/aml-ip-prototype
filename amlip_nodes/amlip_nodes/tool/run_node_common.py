@@ -29,7 +29,7 @@ def run_node(node_name, node_constructor, args=None):
     # TODO input args
 
     # Create "unique" name
-    name = node_name + str(random.randint(0, 1000))
+    name = node_name + ' ' + str(random.randint(0, 999)).zfill(3)
 
     print(f'Starting {name} execution.')
 
@@ -37,7 +37,7 @@ def run_node(node_name, node_constructor, args=None):
     signal.signal(signal.SIGINT, sigint_signal_handler)
 
     # Check result folder exist
-    checkFolders()
+    # checkFolders()
 
     # Create node and run
     main_node = node_constructor(name)

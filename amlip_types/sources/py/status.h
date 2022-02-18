@@ -72,7 +72,8 @@ enum NodeKind : uint32_t
     AGENT,
     MAIN,
     COMPUTATIONAL,
-    EDGE
+    EDGE,
+    STATUS
 };
 /*!
  * @brief This class represents the enumeration StatusKind defined by the user in the IDL file.
@@ -168,6 +169,31 @@ public:
      * @return Reference to member id
      */
     eProsima_user_DllExport std::string& id();
+    /*!
+     * @brief This function copies the value in member name
+     * @param _name New value to be copied in member name
+     */
+    eProsima_user_DllExport void name(
+            const std::string& _name);
+
+    /*!
+     * @brief This function moves the value in member name
+     * @param _name New value to be moved in member name
+     */
+    eProsima_user_DllExport void name(
+            std::string&& _name);
+
+    /*!
+     * @brief This function returns a constant reference to member name
+     * @return Constant reference to member name
+     */
+    eProsima_user_DllExport const std::string& name() const;
+
+    /*!
+     * @brief This function returns a reference to member name
+     * @return Reference to member name
+     */
+    eProsima_user_DllExport std::string& name();
     /*!
      * @brief This function sets a value in member node_kind
      * @param _node_kind New value for member node_kind
@@ -267,6 +293,7 @@ public:
 private:
 
     std::string m_id;
+    std::string m_name;
     NodeKind m_node_kind;
     StatusKind m_status;
 };

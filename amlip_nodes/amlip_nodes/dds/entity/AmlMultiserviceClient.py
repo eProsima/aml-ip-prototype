@@ -26,6 +26,8 @@ from amlip_nodes.dds.entity.AmlWriter import AmlWriter
 from amlip_nodes.dds.node.AmlNodeId import AmlNodeId
 from amlip_nodes.exception.Exception import InconsistencyException
 
+MAX_TIMEOUT_DATA_MSCLIENT = 10
+
 
 class AmlMultiserviceClient():
     """Multiservice Client entity."""
@@ -45,11 +47,15 @@ class AmlMultiserviceClient():
 
         Create a Client entity with every DDS subentity required.
         """
+        print(f'Creating AmlMultiserviceClient {service_name}.')
         # Internal elements
         self.node_id_ = node_id
         self.name_ = service_name
         self.request_number_ = 0
         self.stop_ = False
+        self.task_id_ = 0
+        # This list collects all task that servers has set as available to
+        self.request_already_available_ = {}
 
         # Create request availability Writer
         self.aml_writer_request_availability_ = AmlWriter(
@@ -111,7 +117,8 @@ class AmlMultiserviceClient():
         self._send_request_availability(task_id)
 
         # Then wait for the answer from the first server
-        server_id = self._wait_reply_available(task_id)
+        data_reply_available = self._wait_reply_available(task_id)
+        server_id = data_reply_available.server_id()
 
         # Once a server is ready, publish which is the server target and
         # send it the data
@@ -141,8 +148,12 @@ class AmlMultiserviceClient():
         Return id of the server that will answer the request.
         """
         while True:
+            # Check if there is already an answer for this task
+            if task_id in self.request_already_available_.keys():
+                return self.request_already_available_[task_id]
+
             # Wait for a message
-            self.aml_reader_reply_available_.wait_to_data_receive()
+            self.aml_reader_reply_available_.wait_to_data_receive(MAX_TIMEOUT_DATA_MSCLIENT)
 
             # Get every message till a server answering this id task and client
             while self.aml_reader_reply_available_.data_available():
@@ -150,12 +161,18 @@ class AmlMultiserviceClient():
                 if reply_received.requester_id() != self.node_id_.id_str():
                     # Reply for different Client, skip
                     continue
+
                 elif reply_received.task_id() != task_id:
-                    # Reply for old request, skip
+                    # Store it so other threads know it has arrived and skip
+                    self.request_already_available_[task_id] = reply_received
                     continue
+
                 else:
                     # Server has answered, return ID of server
-                    return reply_received.server_id()
+                    # Store this server so it is not
+                    # WARNING do not return server_id because this data will be removed
+                    self.request_already_available_[task_id] = reply_received
+                    return reply_received
 
     def _send_task_target(self, task_id, server_id):
         """Send task target data for all servers."""
@@ -183,7 +200,7 @@ class AmlMultiserviceClient():
         task_data.data(data)
 
         # Send message
-        self.aml_writer_data_.write(task_data)
+        self.aml_writer_task_.write(task_data)
 
     def _wait_solution(self, task_id, server_id):
         """
@@ -193,12 +210,12 @@ class AmlMultiserviceClient():
         """
         while True:
             # Wait for a message
-            self.aml_reader_solution_.wait_to_data_receive()
+            self.aml_reader_solution_.wait_to_data_receive(MAX_TIMEOUT_DATA_MSCLIENT)
 
             # Get every message till a server answering this id is listen
             while self.aml_reader_solution_.data_available():
                 solution_received = self.aml_reader_solution_.read()
-                solution_received_reference = solution_received.request_reference()
+                solution_received_reference = solution_received.task_reference()
 
                 if solution_received_reference.requester_id() != self.node_id_.id_str():
                     # Reply for different Client, skip
@@ -211,4 +228,5 @@ class AmlMultiserviceClient():
                     raise InconsistencyException('Task answered from a not corresponding server.')
                 else:
                     # Server has answered, return solution
-                    return solution_received.data()
+                    # WARNING do not return data because this data will be removed
+                    return solution_received

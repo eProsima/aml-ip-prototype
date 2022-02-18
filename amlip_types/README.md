@@ -17,5 +17,7 @@ It requires to use the FastDDSGen tool.
 
 # Convert idl files to sources
 ./<path-to-fastddsgen-installation>/scripts/fastddsgen -python -cs -d src/amlip/amlip_types/sources/py/ src/amlip/amlip_types/idl/* -replace
+
+# From colcon workspace with fastddsgen downloaded and installed:
 # ./src/fastddsgen/scripts/fastddsgen -python -cs -d src/amlip/amlip_types/sources/py/ src/amlip/amlip_types/idl/* -replace
 ```
