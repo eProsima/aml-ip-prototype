@@ -15,6 +15,8 @@
 
 import fastdds
 
+from amlip_nodes.log.log import logger
+
 
 class AmlParticipant():
     """AmlParticipant entity."""
@@ -29,7 +31,8 @@ class AmlParticipant():
 
         Create every internal variable for class I_AmlNodeParticipant.
         """
-        print(f'Creating AmlParticipant {name}.')
+        logger.construct(f'Creating AmlParticipant {name}.')
+
         # Participant internal values
         self.name_ = name
 
@@ -52,7 +55,7 @@ class AmlParticipant():
 
     def __del__(self):
         """Destroy Participant entities and destroy participant in factory."""
-        print(f'Destroying AmlParticipant {self.name_}.')
+        logger.construct(f'Destroying AmlParticipant {self.name_}.')
 
         # Destroy alive entities
         self.participant_.delete_contained_entities()

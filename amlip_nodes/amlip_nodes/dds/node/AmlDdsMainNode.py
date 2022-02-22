@@ -26,6 +26,7 @@ from amlip_nodes.aml.aml_types import Job, JobSolution
 from amlip_nodes.dds.node.AmlDdsNode import AmlDdsNode
 from amlip_nodes.exception.Exception import \
     InconsistencyException, NoDataException, StopException, TimeoutException
+from amlip_nodes.log.log import logger
 
 import inference
 
@@ -53,6 +54,8 @@ class AmlDdsMainNode(AmlDdsNode):
                  domain=0):
         """Construct MainNodeParticipant object."""
         super().__init__(name, domain)
+
+        logger.construct(f'Constructing AmlDdsMainNode {name}')
 
         # Internal values
         self.inference_server_ = None
@@ -90,10 +93,7 @@ class AmlDdsMainNode(AmlDdsNode):
 
     def _inference_callback(self, data):
         """TODO."""
-        print(f'Inference Callback call in node {self.name}.')
-
-        solution = inference.Inference_Solution()
-        return solution
+        pass
 
     def stop(self):
         """Stop internal interfaces."""
@@ -138,7 +138,7 @@ class AmlDdsMainNode(AmlDdsNode):
                 self.async_job_requests_[job.index]['thread'].join()
 
             # Return solution
-            return self.async_job_requests_[job.index]['solution']
+            return (self.async_job_requests_[job.index]['solution'])
 
     def send_job_async(
             self,
@@ -168,13 +168,16 @@ class AmlDdsMainNode(AmlDdsNode):
         """Routine to exectue an async request job."""
         try:
             # Send the job and wait for answer
-            solution = self.job_client_.send_request(Job.to_dds_data_type(job))
+            solution = self.job_client_.send_request(
+                data=Job.to_dds_data_type(job),
+                task_id=job.index)
 
-            print(f'Solution get for job {job.index}')
+            logger.execution(f'{self.name_} got solution for job {job.index}')
 
             # Store solution
             self.async_job_requests_[job.index]['solution'] = JobSolution.from_dds_data_type(solution.data())
             self.async_job_requests_[job.index]['status'] = AsyncCallStatus.FINISHED
+            self.async_job_requests_[job.index]['server'] = solution.task_reference().server_id()
 
         except StopException:
             # Stopped before the answer arrives, set it as stopped
@@ -183,3 +186,7 @@ class AmlDdsMainNode(AmlDdsNode):
         except TimeoutException:
             # Some of the messages has not been answered in enough time
             self.async_job_requests_[job.index]['status'] = AsyncCallStatus.TIMEOUT
+
+    def task_timeout(self, task_id):
+        """Set a task as timeout and send a target message that is no longer available."""
+        self.job_client_.send_task_target_timeout(task_id)

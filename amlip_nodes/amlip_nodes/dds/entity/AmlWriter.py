@@ -22,6 +22,7 @@ from time import sleep
 
 from amlip_nodes.dds.entity.AmlParticipant import AmlParticipant
 from amlip_nodes.dds.entity.AmlTopic import AmlTopic
+from amlip_nodes.log.log import logger
 
 import fastdds
 
@@ -40,7 +41,8 @@ class AmlWriter():
 
         It creates a DDS Publisher and inside a DDS DataWriter.
         """
-        print(f'Creating AmlWriter {aml_topic.name()}, {aml_topic.type_name()}.')
+        logger.construct(f'Creating AmlWriter {aml_topic.name()}, {aml_topic.type_name()}.')
+
         # Topic
         self.aml_topic_ = aml_topic
 

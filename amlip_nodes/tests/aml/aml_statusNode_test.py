@@ -21,14 +21,16 @@ from amlip_nodes.aml.aml_statusNode import StatusNode
 def test_status_node_creation():
     """Create a StatusNode."""
     node = StatusNode(
-        name='StatusNode')
+        name='StatusNode',
+        store_in_file=False)
     node.stop()
 
 
 def test_status_node_run():
     """Create a StatusNode."""
     node = StatusNode(
-        name='StatusNode')
+        name='StatusNode',
+        store_in_file=False)
 
     node_thread = Thread(target=node.run)
     node_thread.start()

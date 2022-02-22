@@ -42,6 +42,12 @@ class NoDataException(AmlException):
     pass
 
 
+class TimeoutException(AmlException):
+    """Raises when a waiting thread has been stopped due to timeout."""
+
+    pass
+
+
 class StopException(AmlException):
     """Raises when a running entity has been stopped from another thread."""
 

@@ -15,6 +15,7 @@
 
 
 from amlip_nodes.dds.entity.AmlParticipant import AmlParticipant
+from amlip_nodes.log.log import logger
 
 import fastdds
 
@@ -42,8 +43,7 @@ class AmlTopicDataType():
         :param topic_data_type_constructor: constructor function of the class
             of this data type.
         """
-
-        print(f'Creating AmlTopicDataType {topic_data_type_name}.')
+        logger.construct(f'Creating AmlTopicDataType {topic_data_type_name}.')
 
         self.name_ = topic_data_type_name
         # self.topic_data_type_pubsub_constructor_ = topic_data_type_pubsub_constructor

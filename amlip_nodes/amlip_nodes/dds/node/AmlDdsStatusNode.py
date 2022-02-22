@@ -18,11 +18,12 @@ DDS Participant to AML Status Node.
 It gets Jobs, consumed them and return an atomization.
 """
 
-import threading
+from datetime import datetime
 
 import amlip_nodes.dds.network.aml_topic_names as topic_names
 from amlip_nodes.dds.node.AmlDdsNode import AmlDdsNode
 from amlip_nodes.exception.Exception import StopException
+from amlip_nodes.log.log import logger
 
 import status
 
@@ -38,6 +39,7 @@ class AmlDdsStatusNode(AmlDdsNode):
 
         # Internal values
         self.status_reader_ = None
+        self.status_history_ = []
 
         # Stop variables
         self.stop_ = False
@@ -55,6 +57,9 @@ class AmlDdsStatusNode(AmlDdsNode):
             topic_name=topic_names.STATUS_TOPIC_NAME,
             topic_data_type_pubsub_constructor=status.StatusPubSubType,
             topic_data_type_constructor=status.Status)
+
+    def __del__(self):
+        """Store in file the status read."""
 
     def _node_kind(self):
         """TODO comment."""
@@ -82,8 +87,12 @@ class AmlDdsStatusNode(AmlDdsNode):
                 # Read data
                 status_data = self.status_reader_.read()
 
-                # Print data
-                self.__print_status_data(status_data)
+                # Store and Print data
+                self.status_history_.append((datetime.now().strftime("%H:%M:%S"), status_data))
+                logger.user(
+                    f'\n{self.name_} has read data message:\n' +
+                    AmlDdsStatusNode._str_status_data(status_data))
+
                 return True
 
             else:
@@ -93,18 +102,18 @@ class AmlDdsStatusNode(AmlDdsNode):
         except StopException:
             return False
 
-    def __print_status_data(self, data):
+    @staticmethod
+    def _str_status_data(data) -> str:
         """Print status data arrived from other node."""
-        print(
-            f'\n'
-            f'{self.name_} has read data message:\n'
+        return (
             f'  ID          : {data.id()}\n'
             f'  NAME        : {data.name()}\n'
-            f'  NODE KIND   : {self.__str_to_status_node_kind(data)}\n'
-            f'  STATUS      : {self.__str_to_status_status(data)}\n'
+            f'  NODE KIND   : {AmlDdsStatusNode.__str_to_status_node_kind(data)}\n'
+            f'  STATUS      : {AmlDdsStatusNode.__str_to_status_status(data)}\n'
         )
 
-    def __str_to_status_node_kind(self, data):
+    @staticmethod
+    def __str_to_status_node_kind(data) -> str:
         """TODO comment."""
         if data.node_kind() == status.MAIN:
             return 'MainNode'
@@ -113,7 +122,8 @@ class AmlDdsStatusNode(AmlDdsNode):
         elif data.node_kind() == status.STATUS:
             return 'Status'
 
-    def __str_to_status_status(self, data):
+    @staticmethod
+    def __str_to_status_status(data) -> str:
         """TODO comment."""
         if data.status() == status.RUNNING:
             return 'running'

@@ -1,10 +1,11 @@
 """Run Aml Computing Node."""
 
+from distutils.debug import DEBUG
 import random
 import signal
 from threading import Condition, Thread
 
-from amlip_nodes.aml.aml_config import checkFolders
+from amlip_nodes.log.log import logger, logging
 
 
 CV_STOP_ = Condition()
@@ -13,7 +14,7 @@ STOP_ = False
 
 def sigint_signal_handler(signum, frame):
     """SIGINT Signal handler."""
-    print(f'Signal handler called with signal {signum}.')
+    logger.user(f'Signal handler called with signal {signum}.')
 
     global STOP_
 
@@ -26,12 +27,15 @@ def sigint_signal_handler(signum, frame):
 
 def run_node(node_name, node_constructor, args=None):
 
+    logging.basicConfig(level=logging.NOTSET - 10)
+    logger.setLevel(logging.USER)
+
     # TODO input args
 
     # Create "unique" name
     name = node_name + ' ' + str(random.randint(0, 999)).zfill(3)
 
-    print(f'Starting {name} execution.')
+    logger.user(f'Starting {name} execution.')
 
     # Activate signal handler
     signal.signal(signal.SIGINT, sigint_signal_handler)
@@ -53,7 +57,7 @@ def run_node(node_name, node_constructor, args=None):
             STOP_)
     CV_STOP_.release()
 
-    print(f'Signal received, stopping node {name}. This could take few seconds.')
+    logger.user(f'Signal received, stopping node {name}. This could take few seconds.')
 
     # Stop node
     main_node.stop()
@@ -61,4 +65,4 @@ def run_node(node_name, node_constructor, args=None):
     # Wait for node to terminate
     node_thread.join()
 
-    print(f'Finishing {name} execution.')
+    logger.user(f'Finishing {name} execution.')

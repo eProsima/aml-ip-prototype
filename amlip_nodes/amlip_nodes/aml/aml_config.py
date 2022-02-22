@@ -6,7 +6,6 @@ from pathlib import Path
 RESULTS_FOLDER = './INTERCHANGE_FOLDER/RESULTS'
 
 
-def checkFolders():
+def checkFolders(folder_name):
     """TODO comment."""
-    for folder in RESULTS_FOLDER:
-        Path(folder).mkdir(parents=True, exist_ok=True)
+    Path(folder_name).mkdir(parents=True, exist_ok=True)

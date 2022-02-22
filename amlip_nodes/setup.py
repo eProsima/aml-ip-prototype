@@ -14,6 +14,7 @@ file_packages = [
     package_name + '/dds/network',
     package_name + '/dds/node',
     package_name + '/exception',
+    package_name + '/log',
     package_name + '/tool',
 ]
 

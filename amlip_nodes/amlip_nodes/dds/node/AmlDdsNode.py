@@ -34,6 +34,7 @@ from amlip_nodes.dds.entity.AmlWriter import AmlWriter
 from amlip_nodes.dds.network.aml_node_types import TopicKind
 from amlip_nodes.dds.node.AmlNodeId import AmlNodeId
 from amlip_nodes.dds.node.TopicHandler import TopicHandler
+from amlip_nodes.log.log import logger
 
 import multiservice
 
@@ -53,6 +54,8 @@ class AmlDdsNode():
             name,
             domain=0):
         """Construct AmlNode and instantiate every internal variable."""
+        logger.construct(f'Constructing AmlDdsNode {name}')
+
         # Participant Id
         self.id_ = AmlNodeId()
 
@@ -65,7 +68,16 @@ class AmlDdsNode():
         self.topic_handler_ = TopicHandler()
         self.status_writer_ = None
 
-        print(f'Created AML Participant {name} with id {self.id_}.')
+        logger.debug(f'Created AmlDdsNode {name} with id {self.id_}.')
+
+    def __del__(self):
+        """
+        Destroy Entity.
+
+        So far, every entity is destroyed by itself.
+        """
+        logger.construct(f'Destroying AmlDdsNode {self.name_}.')
+        self._publish_status_data(alive=False)
 
     def init(self):
         """
@@ -88,7 +100,7 @@ class AmlDdsNode():
         # publish state
         self._publish_status_data()
 
-        print(f'AML Participant {self.name_} created.')
+        logger.debug(f'AmlDdsNode {self.name_} initialized.')
 
     def _publish_status_data(self, alive=True):
         """Write in Status writer the actual status of the entity."""
@@ -232,8 +244,9 @@ class AmlDdsNode():
         """ Create Entity """
         if writer:
             # Create Writer
-            print(f'Creating Writer in Participant {self.name_} '
-                  f'in topic {topic_name}.')
+            logger.debug(
+                f'Creating Writer in DDS Node {self.name_} '
+                f'in topic {topic_name}.')
 
             return AmlWriter(
                 aml_topic=aml_topic,
@@ -241,8 +254,9 @@ class AmlDdsNode():
 
         else:
             # Create Reader
-            print(f'Creating Reader in Participant {self.name_} '
-                  f'in topic {topic_name}.')
+            logger.debug(
+                f'Creating Reader in DDS Node {self.name_} '
+                f'in topic {topic_name}.')
             return AmlReader(
                 aml_topic=aml_topic,
                 aml_participant=self.participant_)
@@ -376,8 +390,9 @@ class AmlDdsNode():
         """ Create entity """
         if server:
             # Create Server
-            print(f'Creating Server in Participant {self.name_} '
-                  f'in service {service_name}.')
+            logger.debug(
+                f'Creating Server in DDS Node {self.name_} '
+                f'in service {service_name}.')
 
             return AmlMultiserviceServer(
                 node_id=self.id_,
@@ -392,8 +407,9 @@ class AmlDdsNode():
 
         else:
             # Create Client
-            print(f'Creating Client in Participant {self.name_} '
-                  f'in service {service_name}.')
+            logger.debug(
+                f'Creating Client in DDS Node {self.name_} '
+                f'in service {service_name}.')
 
             return AmlMultiserviceClient(
                 node_id=self.id_,
@@ -412,12 +428,3 @@ class AmlDdsNode():
         Overload it in subclasses.
         """
         pass
-
-    def __del__(self):
-        """
-        Destroy Entity.
-
-        So far, every entity is destroyed by itself.
-        """
-        self._publish_status_data(alive=False)
-        print(f'Destroying Node {self.name_}.')

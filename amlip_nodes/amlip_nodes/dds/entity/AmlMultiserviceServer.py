@@ -27,6 +27,7 @@ from amlip_nodes.dds.entity.AmlTopic import AmlTopic
 from amlip_nodes.dds.entity.AmlWriter import AmlWriter
 from amlip_nodes.dds.node.AmlNodeId import AmlNodeId
 from amlip_nodes.exception.Exception import InconsistencyException
+from amlip_nodes.log.log import logger
 
 MAX_TIMEOUT_DATA_MSSERVER = 10
 
@@ -56,7 +57,8 @@ class AmlMultiserviceServer():
             If callback is None, it will require to specify the callback when calling
             process request.
         """
-        print(f'Creating AmlMultiserviceServer {service_name}.')
+        logger.construct(f'Creating AmlMultiserviceServer {service_name}.')
+
         # Internal elements
         self.node_id_ = node_id
         self.name_ = service_name
@@ -92,6 +94,7 @@ class AmlMultiserviceServer():
 
     def __del__(self):
         """Stop entity and destroy it."""
+        logger.construct(f'Deleting AmlMultiserviceServer {self.name_}.')
         self.stop()
 
     def stop(self):
@@ -198,12 +201,17 @@ class AmlMultiserviceServer():
             while self.aml_reader_task_target_.data_available():
                 task_target_received = self.aml_reader_task_target_.read()
                 if task_target_received.requester_id() != requester_id:
-                    # Reply from different Client, skip
+                    # Reply from different Client, store it and skip
+                    self.tasks_already_taken_.append(
+                        (task_target_received.requester_id(), task_target_received.task_id()))
                     continue
+
                 elif task_target_received.task_id() != task_id:
                     # Reply for different Task, store it and skip
-                    self.tasks_already_taken_.append((requester_id, task_id))
+                    self.tasks_already_taken_.append(
+                        (task_target_received.requester_id(), task_target_received.task_id()))
                     continue
+
                 else:
                     # Client has answered, return if this server is the target
                     if task_target_received.server_id() == self.node_id_.id_str():

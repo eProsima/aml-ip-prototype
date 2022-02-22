@@ -21,14 +21,16 @@ from amlip_nodes.aml.aml_mainNode import MainNode
 def test_main_node_creation():
     """Create a MainNode."""
     node = MainNode(
-        name='MainNode')
+        name='MainNode',
+        store_in_file=False)
     node.stop()
 
 
 def test_main_node_run():
     """Create a MainNode."""
     node = MainNode(
-        name='MainNode')
+        name='MainNode',
+        store_in_file=False)
 
     node_thread = Thread(target=node.run)
     node_thread.start()

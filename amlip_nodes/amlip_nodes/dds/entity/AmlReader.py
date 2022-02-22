@@ -24,6 +24,7 @@ from time import sleep
 from amlip_nodes.dds.entity.AmlParticipant import AmlParticipant
 from amlip_nodes.dds.entity.AmlTopic import AmlTopic
 from amlip_nodes.exception.Exception import NoDataException, StopException, TimeoutException
+from amlip_nodes.log.log import logger
 
 import fastdds
 
@@ -50,7 +51,7 @@ class AmlReader(fastdds.DataReaderListener):
         """
         super().__init__()
 
-        print(f'Creating AmlReader {aml_topic.name()}, {aml_topic.type_name()}.')
+        logger.construct(f'Creating AmlReader {aml_topic.name()}, {aml_topic.type_name()}.')
 
         # Topic
         self.aml_topic_ = aml_topic

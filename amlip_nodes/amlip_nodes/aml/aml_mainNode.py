@@ -2,12 +2,12 @@
 
 import random
 import time
-from pathlib import Path
 from threading import Condition, Thread
 
-from amlip_nodes.aml.aml_config import RESULTS_FOLDER
+from amlip_nodes.aml.aml_config import RESULTS_FOLDER, checkFolders
 from amlip_nodes.aml.aml_types import Atom, Duple, Job, JobSolution, ModelInfo
 from amlip_nodes.dds.node.AmlDdsMainNode import AmlDdsMainNode
+from amlip_nodes.log.log import logger
 
 
 class MainNode:
@@ -22,11 +22,12 @@ class MainNode:
 
     def __init__(
             self,
-            name):
+            name,
+            store_in_file=True):
         """Create a default MainNode."""
         # Internal variables
         self.name_ = name
-        self.results_folder_ = Path(RESULTS_FOLDER)
+        self.store_in_file_ = store_in_file
 
         # DDS variables
         self.dds_main_node_ = AmlDdsMainNode(name)
@@ -39,7 +40,8 @@ class MainNode:
         # Jobs
         self.job_number_ = 0
         self.pending_jobs_: list[Job] = []
-        self.solved_jobs_: list[JobSolution] = []
+        self.solved_jobs_: list[(Job, JobSolution)] = []
+        self.timeout_jobs_: list[Job] = []
 
         # Aml not used data
         self.model_info_ = ModelInfo()
@@ -49,7 +51,9 @@ class MainNode:
     def __del__(self):
         """TODO comment."""
         self.stop()
-        self._save_atomization_in_file()
+
+        if self.store_in_file_:
+            self._save_atomization_in_file()
 
     def stop(self):
         """
@@ -118,7 +122,7 @@ class MainNode:
 
             # Sleep for a random time
             sleep_time = random.randint(time_range_ms[0], time_range_ms[1]) / 1000
-            print(f'AmlNode {self.name_} generating job (approximately {sleep_time} ms).')
+            logger.execution(f'AmlNode {self.name_} generating job (approximately {sleep_time} ms).')
             time.sleep(sleep_time)
 
     def check_jobs_solutions_routine_(
@@ -133,10 +137,10 @@ class MainNode:
 
         :todo: in the future it should not wait for a time but with a dds method in DdsAmlMainNode
         """
-
         while not self.stop_:
 
-            print(f'AmlNode {self.name_} checking job results.')
+            logger.execution(
+                f'{self.name_} checking job results.')
 
             not_solved_jobs_indexes = []
             timeout_indexes = []
@@ -158,36 +162,64 @@ class MainNode:
                     del self.pending_jobs_[i]
 
                     # Store it as solved job
-                    self.solved_jobs_.append(job_solution)
+                    self.solved_jobs_.append((pending_job, job_solution))
 
                 elif self.dds_main_node_.is_job_timeout(pending_job):
                     # Job request has timeout
                     timeout_indexes.append(pending_job.index)
+                    self.timeout_jobs_.append(pending_job)
                     del self.pending_jobs_[i]
 
                 else:
                     # Job is still pending
                     not_solved_jobs_indexes.append(pending_job.index)
 
+            # Log in stdout the actual status
             if len(not_solved_jobs_indexes) > 0:
                 self.__print_not_yet_solved_job_indexes(not_solved_jobs_indexes)
             if len(timeout_indexes) > 0:
                 self.__print_timeout_job_indexes(timeout_indexes)
+
+            # Publish tasks discarded for timeout
+            for task_id in timeout_indexes:
+                self.dds_main_node_.task_timeout(task_id)
 
             # Sleep for period time
             time.sleep(period_time)
 
     def _save_atomization_in_file(
             self,
-            file_name: str = 'result_atomization.aml'):
+            file_name: str = ''):
         """TODO comment."""
-        # TODO
-        print(f'This is supposed to save the results in file {self.results_folder_}/{file_name}.')
+        if file_name == '':
+            # Check result folder exists
+            checkFolders(RESULTS_FOLDER)
+            file_name = f'{RESULTS_FOLDER}/result_atomization_{"".join(self.name_.split())}.aml'
+
+        logger.debug(f'Storing jobs history from node {self.name_} in file {file_name}')
+
+        # Open file and write down solution
+        with open(f'{file_name}', 'w') as file:
+
+            # Write down pending jobs
+            file.write('PENDING\n')
+            for job in self.pending_jobs_:
+                file.write(f'{job}\n')
+
+            # Write down timeout jobs
+            file.write('\nTIMEOUT\n')
+            for job in self.timeout_jobs_:
+                file.write(f'{job}\n')
+
+            # Write down solutioned jobs
+            file.write('\nSOLUTION\n')
+            for job, solution_job in self.solved_jobs_:
+                file.write(f'{job} : {solution_job}\n')
 
     # Variables to create random jobs
-    subjects_ = ['he ', 'she ', 'jack ', 'tim ']
-    verbs_ = ['was ', 'is ']
-    nouns_ = ['playing.', 'reading.', 'talking.', 'dancing.', 'speaking.']
+    subjects_ = ['he ', 'she ', 'jack ', 'tim ', 'lorenzo ']
+    verbs_ = ['was ', 'is ', 'like ']
+    nouns_ = ['playing ', 'reading ', 'talking ', 'dancing ', 'speaking ', 'bubbling ']
 
     def __random_job_generator() -> str:
         return random.choice(MainNode.subjects_) + \
@@ -197,32 +229,32 @@ class MainNode:
     def __print_send_job(
             self,
             job: Job):
-        print(
-            f'\n'
+        logger.user(
             f'Main Node {self.name_} has created a new job:\n'
-            f'  JOB: {job}')
+            f'  JOB: {job}'
+            f'\n')
 
     def __print_solved_job(
             self,
             job: Job,
             solution: JobSolution):
-        print(
-            f'\n'
+        logger.user(
             f'Main Node {self.name_} has received the solution to job:\n'
             f'  JOB: {job}\n'
             f' with the result:\n'
-            f'  SOLUTION: {solution}')
+            f'  SOLUTION: {solution}'
+            f'\n')
 
     def __print_not_yet_solved_job_indexes(
             self,
             not_solved_jobs_indexes: list):
-        print(
-            f'\n'
-            f'Main Node {self.name_} has not yet solution for jobs: {not_solved_jobs_indexes}')
+        logger.execution(
+            f'Main Node {self.name_} has not yet solution for jobs: {not_solved_jobs_indexes}'
+            f'\n')
 
     def __print_timeout_job_indexes(
             self,
             timeout_jobs_indexes: list):
-        print(
-            f'\n'
-            f'Main Node {self.name_} has discarded jobs {timeout_jobs_indexes} for timeout.')
+        logger.warning(
+            f'Main Node {self.name_} has discarded jobs {timeout_jobs_indexes} for timeout.'
+            f'\n')

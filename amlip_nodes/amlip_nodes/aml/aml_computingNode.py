@@ -1,12 +1,15 @@
 """AML Computing Node Implementation."""
 
+# import logging
 import random
 import time
 from threading import Condition, Thread
 
+from amlip_nodes.aml.aml_config import RESULTS_FOLDER, checkFolders
 from amlip_nodes.aml.aml_types import Job, JobSolution
 from amlip_nodes.dds.node.AmlDdsComputingNode import AmlDdsComputingNode
 from amlip_nodes.exception.Exception import StopException, TimeoutException
+from amlip_nodes.log.log import logger
 
 
 class ComputingNode:
@@ -21,11 +24,16 @@ class ComputingNode:
 
     def __init__(
             self,
-            name):
+            name,
+            store_in_file=True):
         """Create a default ComputingNode."""
+        logger.construct(f'Creating ComputingNode {name}.')
+
         # Internal variables
         self.name_ = name
         self.time_range_ms_ = (2000, 7000)
+        self.store_in_file_ = store_in_file
+        self.jobs_processed_ = []
 
         # DDS variables
         self.dds_computing_node_ = AmlDdsComputingNode(
@@ -39,7 +47,30 @@ class ComputingNode:
 
     def __del__(self):
         """TODO comment."""
+        logger.construct(f'Destroying ComputingNode {self.name_}.')
         self.stop()
+
+        if self.store_in_file_:
+            self._save_jobs_in_file()
+
+    def _save_jobs_in_file(
+            self,
+            file_name: str = ''):
+        """TODO comment."""
+        if file_name == '':
+            # Check result folder exists
+            checkFolders(RESULTS_FOLDER)
+            file_name = f'{RESULTS_FOLDER}/solved_jobs_{"".join(self.name_.split())}.aml'
+
+        logger.debug(f'Storing jobs history from node {self.name_} in file {file_name}')
+
+        # Open file and write down solution
+        with open(f'{file_name}', 'w') as file:
+
+            # Write down pending jobs
+            file.write('JOBS ANSWERED\n')
+            for job, solution_job in self.jobs_processed_:
+                file.write(f'{job} : {solution_job}\n')
 
     def stop(self):
         """
@@ -49,8 +80,12 @@ class ComputingNode:
         Set variable stop as true.
         Awake threads waiting for stop.
         """
+        logger.construct(f'Stopping ComputingNode {self.name_}.')
+
+        # Stop DDS module
         self.dds_computing_node_.stop()
 
+        # Set entity as stopped
         self.cv_stop_.acquire()
         self.stop_ = True
         self.cv_stop_.notify_all()
@@ -58,6 +93,8 @@ class ComputingNode:
 
     def run(self):
         """TODO comment."""
+        logger.debug(f'Run ComputingNode {self.name_}.')
+
         # Thread to generate jobs randomly
         job_calulator_thread = \
             Thread(target=self._calculate_job_solution_routine)
@@ -91,15 +128,15 @@ class ComputingNode:
 
             try:
                 # Try to answer to a new job
-                print(f'{self.name_} waiting to process a job.')
+                logger.info(f'{self.name_} waiting to process a job.')
                 self.dds_computing_node_.process_job()
 
             except StopException:
-                print(f'{self.name_} stopped while calculating a solution.')
+                logger.info(f'{self.name_} stopped while calculating a solution.')
                 break
 
             except TimeoutException:
-                print(f'{self.name_} timeout waiting for client.')
+                logger.info(f'{self.name_} timeout waiting for client.')
                 continue
 
     def _job_process_callback_dds_type(
@@ -108,18 +145,30 @@ class ComputingNode:
         """TODO comment."""
         return self._job_process_callback(Job.from_dds_data_type(job_data)).to_dds_data_type()
 
+    final_sentences_ = ['with me. ', 'alone. ', 'very good. ', 'badly.', 'like a boss.']
+
     def _job_process_callback(
             self,
             job: Job):
         """TODO comment."""
         # Sleep to simulate long calculation
         sleep_time = random.randint(self.time_range_ms_[0], self.time_range_ms_[1]) / 1000
-        print(
+        logger.user(
             f'{self.name_} calculating result for job {job.index} (approximately {sleep_time} ms).')
         time.sleep(sleep_time)
 
         # Generate solution
-        print(
+        logger.user(
             f'{self.name_} finish calculating job {job.index}.')
 
-        return JobSolution(job.index, job.data.upper())
+        solution = ComputingNode.__random_solution_generator(job)
+
+        # Storing processed job
+        self.jobs_processed_.append((job, solution))
+
+        return solution
+
+    def __random_solution_generator(job: Job) -> str:
+        return JobSolution(
+            job.index,
+            job.data + random.choice(ComputingNode.final_sentences_))

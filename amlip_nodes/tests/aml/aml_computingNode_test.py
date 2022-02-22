@@ -21,14 +21,16 @@ from amlip_nodes.aml.aml_computingNode import ComputingNode
 def test_computing_node_creation():
     """Create a ComputingNode."""
     node = ComputingNode(
-        name='ComputingNode')
+        name='ComputingNode',
+        store_in_file=False)
     node.stop()
 
 
 def test_computing_node_run():
     """Create a ComputingNode."""
     node = ComputingNode(
-        name='ComputingNode')
+        name='ComputingNode',
+        store_in_file=False)
 
     node_thread = Thread(target=node.run)
     node_thread.start()

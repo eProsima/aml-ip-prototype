@@ -15,6 +15,7 @@
 
 from amlip_nodes.dds.entity.AmlParticipant import AmlParticipant
 from amlip_nodes.dds.entity.AmlTopicDataType import AmlTopicDataType
+from amlip_nodes.log.log import logger
 
 import fastdds
 
@@ -33,7 +34,7 @@ class AmlTopic():
             aml_topic_data_type: AmlTopicDataType,
             topic_qos=fastdds.TopicQos()):
         """Create new AmlTopic by a Participant and a TopicDataType."""
-        print(f'Creating AmlTopic {topic_name}.')
+        logger.construct(f'Creating AmlTopic {topic_name}.')
 
         self.topic_name_ = topic_name
         self.aml_topic_data_type_ = aml_topic_data_type

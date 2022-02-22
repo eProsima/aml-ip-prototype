@@ -15,10 +15,11 @@
 TODO comment
 """
 
+from amlip_nodes.dds.entity.AmlParticipant import AmlParticipant
 from amlip_nodes.dds.entity.AmlTopic import AmlTopic
 from amlip_nodes.dds.entity.AmlTopicDataType import AmlTopicDataType
-from amlip_nodes.dds.entity.AmlParticipant import AmlParticipant
 from amlip_nodes.exception.Exception import InconsistencyException
+from amlip_nodes.log.log import logger
 
 import fastdds
 
@@ -56,9 +57,6 @@ class TopicHandler():
 
             self._add_data_type(topic_data_type)
 
-            # print(f'Registering type {topic_data_type_name} in Participant '
-            #       f'{aml_participant.name()}.')
-
             return topic_data_type
 
         else:
@@ -88,9 +86,6 @@ class TopicHandler():
             aml_topic_data_type=topic_data_type)
 
         self._add_topic(topic)
-
-        # print(f'Registering topic {topic_name} in Participant '
-        #       f'{aml_participant.name()}.')
 
         return topic
 
