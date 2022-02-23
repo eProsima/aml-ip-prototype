@@ -26,10 +26,10 @@ from amlip_nodes.dds.entity.AmlReader import AmlReader
 from amlip_nodes.dds.entity.AmlTopic import AmlTopic
 from amlip_nodes.dds.entity.AmlWriter import AmlWriter
 from amlip_nodes.dds.node.AmlNodeId import AmlNodeId
-from amlip_nodes.exception.Exception import InconsistencyException
+from amlip_nodes.exception.Exception import InconsistencyException, TimeoutException
 from amlip_nodes.log.log import logger
 
-MAX_TIMEOUT_DATA_MSCLIENT = 10
+MAX_TIMEOUT_DATA_MSCLIENT = 2
 
 
 class AmlMultiserviceClient():
@@ -166,7 +166,11 @@ class AmlMultiserviceClient():
                 return self.request_already_available_[task_id]
 
             # Wait for a message
-            self.aml_reader_reply_available_.wait_to_data_receive(MAX_TIMEOUT_DATA_MSCLIENT)
+            try:
+                self.aml_reader_reply_available_.wait_to_data_receive(MAX_TIMEOUT_DATA_MSCLIENT)
+            except TimeoutException:
+                # It may desynchronize whit other thread, try again
+                continue
 
             # Only one thread will read data, the others will wait and check
             # it from request_already_available_
@@ -230,8 +234,12 @@ class AmlMultiserviceClient():
             if task_id in self.solution_already_available_.keys():
                 return self.solution_already_available_[task_id]
 
-            # Wait for a message (timeout is double than waiting for just availability)
-            self.aml_reader_solution_.wait_to_data_receive(MAX_TIMEOUT_DATA_MSCLIENT*2)
+            # Wait for a message
+            try:
+                self.aml_reader_solution_.wait_to_data_receive(MAX_TIMEOUT_DATA_MSCLIENT)
+            except TimeoutException:
+                # It may desynchronize whit other thread, try again
+                continue
 
             # Only one thread will read data, the others will wait and check
             # it from solution_already_available_

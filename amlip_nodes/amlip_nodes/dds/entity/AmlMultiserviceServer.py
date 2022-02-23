@@ -26,7 +26,7 @@ from amlip_nodes.dds.entity.AmlReader import AmlReader
 from amlip_nodes.dds.entity.AmlTopic import AmlTopic
 from amlip_nodes.dds.entity.AmlWriter import AmlWriter
 from amlip_nodes.dds.node.AmlNodeId import AmlNodeId
-from amlip_nodes.exception.Exception import InconsistencyException
+from amlip_nodes.exception.Exception import InconsistencyException, TimeoutException
 from amlip_nodes.log.log import logger
 
 MAX_TIMEOUT_DATA_MSSERVER = 10
@@ -195,7 +195,11 @@ class AmlMultiserviceServer():
         """
         while True:
             # Wait for a message
-            self.aml_reader_task_target_.wait_to_data_receive(MAX_TIMEOUT_DATA_MSSERVER)
+            try:
+                self.aml_reader_task_target_.wait_to_data_receive(MAX_TIMEOUT_DATA_MSSERVER)
+            except TimeoutException:
+                # It may desynchronize whit other thread, try again
+                continue
 
             # Get every message till a server answering this id task and client
             while self.aml_reader_task_target_.data_available():
@@ -227,7 +231,11 @@ class AmlMultiserviceServer():
         """
         while True:
             # Wait for a message
-            self.aml_reader_task_.wait_to_data_receive(MAX_TIMEOUT_DATA_MSSERVER)
+            try:
+                self.aml_reader_task_.wait_to_data_receive(MAX_TIMEOUT_DATA_MSSERVER)
+            except TimeoutException:
+                # It may desynchronize whit other thread, try again
+                continue
 
             # Get every message till a server answering this id task and client
             while self.aml_reader_task_.data_available():

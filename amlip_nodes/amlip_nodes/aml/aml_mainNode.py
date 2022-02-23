@@ -202,19 +202,22 @@ class MainNode:
         with open(f'{file_name}', 'w') as file:
 
             # Write down pending jobs
-            file.write('PENDING\n')
-            for job in self.pending_jobs_:
-                file.write(f'{job}\n')
+            if len(self.pending_jobs_) > 0:
+                file.write('PENDING\n')
+                for job in self.pending_jobs_:
+                    file.write(f'{job}\n')
 
             # Write down timeout jobs
-            file.write('\nTIMEOUT\n')
-            for job in self.timeout_jobs_:
-                file.write(f'{job}\n')
+            if len(self.timeout_jobs_) > 0:
+                file.write('\nTIMEOUT\n')
+                for job in self.timeout_jobs_:
+                    file.write(f'{job}\n')
 
             # Write down solutioned jobs
-            file.write('\nSOLUTION\n')
-            for job, solution_job in self.solved_jobs_:
-                file.write(f'{job} : {solution_job}\n')
+            if len(self.solved_jobs_) > 0:
+                file.write('\nSOLUTION\n')
+                for job, solution_job in self.solved_jobs_:
+                    file.write(f'{job} : {solution_job}\n')
 
     # Variables to create random jobs
     subjects_ = ['he ', 'she ', 'jack ', 'tim ', 'lorenzo ']
