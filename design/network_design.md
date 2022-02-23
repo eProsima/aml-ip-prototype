@@ -9,16 +9,16 @@
         1. Kind: Node kind
         1. Status: Enable, Disable
 
-1. `aml/job/request`
+1. `aml/request/job`
     1. Publish a request for computing a job
 
-1. `aml/job/reply_available`
+1. `aml/reply_available/job`
     1. Answers a request for computing a job
 
-1. `aml/job/data`
+1. `aml/data/job`
     1. Task information to process
 
-1. `aml/job/solution`
+1. `aml/solution/job`
     1. Data solution from process a job
 
 1. `aml/inference/request`
