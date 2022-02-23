@@ -47,7 +47,8 @@ tags
 
 build/
 install/
-log/
+# Log is commented because some internal modules could be called like that
+# log/
 
 ### Visual Studio ###
 .vs
