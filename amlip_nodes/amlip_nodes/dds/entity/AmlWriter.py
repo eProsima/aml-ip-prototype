@@ -35,13 +35,16 @@ class AmlWriter():
             aml_topic: AmlTopic,
             aml_participant: AmlParticipant,
             publisher_qos=fastdds.PublisherQos(),
-            datawriter_qos=fastdds.DataWriterQos()):
+            datawriter_qos=None):
         """
         Create an AmlWriter entity.
 
         It creates a DDS Publisher and inside a DDS DataWriter.
         """
         logger.construct(f'Creating AmlWriter {aml_topic.name()}, {aml_topic.type_name()}.')
+
+        if datawriter_qos is None:
+            datawriter_qos = AmlWriter.default_datawriter_qos()
 
         # Topic
         self.aml_topic_ = aml_topic
@@ -70,3 +73,17 @@ class AmlWriter():
     def new_data(self):
         """Create a new Data of the data type that this Writer could write."""
         return self.aml_topic_.new_object()
+
+    @staticmethod
+    def default_datawriter_qos():
+        """Return default DataWriter QoS for this project."""
+        wqos = fastdds.DataWriterQos()
+
+        # Transient
+        wqos.durability().kind = fastdds.TRANSIENT_LOCAL_DURABILITY_QOS
+        wqos.history().kind = fastdds.KEEP_ALL_HISTORY_QOS
+        wqos.history().depth = 1000
+        # Reliable
+        wqos.reliability().kind = fastdds.RELIABLE_RELIABILITY_QOS
+
+        return wqos

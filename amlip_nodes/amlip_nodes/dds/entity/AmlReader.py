@@ -43,13 +43,16 @@ class AmlReader(fastdds.DataReaderListener):
             aml_topic: AmlTopic,
             aml_participant: AmlParticipant,
             subscriber_qos=fastdds.SubscriberQos(),
-            datareader_qos=fastdds.DataReaderQos()):
+            datareader_qos=None):
         """
         Create an AmlReader entity.
 
         It creates a DDS Subscriber and inside a DDS DataReader.
         """
         super().__init__()
+
+        if datareader_qos is None:
+            datareader_qos = AmlReader.default_datareader_qos()
 
         logger.construct(f'Creating AmlReader {aml_topic.name()}, {aml_topic.type_name()}.')
 
@@ -140,3 +143,17 @@ class AmlReader(fastdds.DataReaderListener):
         # If awake due to no data availble => timeout
         if not self.data_available():
             raise TimeoutException('Timeout waiting data.')
+
+    @staticmethod
+    def default_datareader_qos():
+        """Return default DataReader QoS for this project."""
+        rqos = fastdds.DataReaderQos()
+
+        # Transient
+        rqos.durability().kind = fastdds.TRANSIENT_LOCAL_DURABILITY_QOS
+        rqos.history().kind = fastdds.KEEP_ALL_HISTORY_QOS
+        rqos.history().depth = 1000
+        # Reliable
+        rqos.reliability().kind = fastdds.RELIABLE_RELIABILITY_QOS
+
+        return rqos
