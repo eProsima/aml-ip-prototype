@@ -223,8 +223,8 @@ class MainNode:
                     file.write(f'{job} : {solution_job}\n')
 
     # Variables to create random jobs
-    subjects_ = ['he ', 'she ', 'jack ', 'tim ', 'lorenzo ']
-    verbs_ = ['was ', 'is ', 'like ']
+    subjects_ = ['He ', 'She ', 'Jack ', 'Tim ', 'Lorenzo ']
+    verbs_ = ['was ', 'is ', 'likes ']
     nouns_ = ['playing ', 'reading ', 'talking ', 'dancing ', 'speaking ', 'bubbling ']
 
     def __random_job_generator() -> str:
@@ -247,7 +247,7 @@ class MainNode:
         logger.user(
             f'Main Node {self.name_} has received the solution to job:\n'
             f'  JOB: {job}\n'
-            f' with the result:\n'
+            f' with result:\n'
             f'  SOLUTION: {solution}'
             f'\n')
 
@@ -262,5 +262,5 @@ class MainNode:
             self,
             timeout_jobs_indexes: list):
         logger.warning(
-            f'Main Node {self.name_} has discarded jobs {timeout_jobs_indexes} for timeout.'
+            f'Main Node {self.name_} has discarded jobs {timeout_jobs_indexes} due to timeout.'
             f'\n')

@@ -148,7 +148,7 @@ class ComputingNode:
         """TODO comment."""
         return self._job_process_callback(Job.from_dds_data_type(job_data)).to_dds_data_type()
 
-    final_sentences_ = ['with me. ', 'alone. ', 'very good. ', 'badly.', 'like a boss.']
+    final_sentences_ = ['with me. ', 'alone. ', 'very well. ', 'badly.', 'like a boss.']
 
     def _job_process_callback(
             self,

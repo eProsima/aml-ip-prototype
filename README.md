@@ -10,6 +10,15 @@ The two subprojets are:
 
 ## Build and install
 
+### Requirements
+
+The requirements of this project are the ones inherited by the libraries below.
+Check [Fast-DDS requirements](https://fast-dds.docs.eprosima.com/en/latest/installation/sources/sources_linux.html),
+the [Fast-DDS Python bindings requirements](https://fast-dds.docs.eprosima.com/en/latest/fastddsgen/python_bindings/python_bindings.html)
+and the [DDS Router requirements](https://eprosima-dds-router.readthedocs.io/en/latest/rst/developer_manual/installation/sources/linux.html)
+
+### Download source and install
+
 ```bash
 # Change directory to the location where the colcon workspace will be created
 cd <path_to_ws>
