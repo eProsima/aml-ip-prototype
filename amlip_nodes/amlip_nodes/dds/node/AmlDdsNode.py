@@ -100,7 +100,7 @@ class AmlDdsNode():
         # publish state
         self._publish_status_data()
 
-        logger.debug(f'AmlDdsNode {self.name_} initialized.')
+        logger.debug(f'AmlDdsNode {self.name_} initialized in domain {self.domain_}.')
 
     def _publish_status_data(self, alive=True):
         """Write in Status writer the actual status of the entity."""

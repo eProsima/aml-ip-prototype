@@ -25,6 +25,24 @@ execute a prototype AML network for workload distributed scenario.
   - `./install/amlip_nodes/lib/amlip_nodes/amlip_main`
   - `./install/amlip_nodes/lib/amlip_nodes/amlip_computing`
 
+## Tool execution
+
+In order to execute any of the `amlip_nodes` tools, use the proper command and use the following arguments.
+This help information is reachable by using argument `-h` in any of the executables
+
+```sh
+usage: amlip_main [-h] [-d DOMAIN] [--debug] [-s SEED]
+
+Process some integers.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -d DOMAIN, --domain DOMAIN
+                        DDS Participant Domain Id.
+  --debug               Activate debug traces.
+  -s SEED, --seed SEED  Random seed.
+```
+
 ## Comments about Ament Python for colcon
 
 1. Library must have in root dir files

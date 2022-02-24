@@ -4,6 +4,7 @@
 import random
 import time
 from threading import Condition, Thread
+from xml import dom
 
 from amlip_nodes.aml.aml_config import RESULTS_FOLDER, checkFolders
 from amlip_nodes.aml.aml_types import Job, JobSolution
@@ -25,6 +26,7 @@ class ComputingNode:
     def __init__(
             self,
             name,
+            domain=0,
             store_in_file=True):
         """Create a default ComputingNode."""
         logger.construct(f'Creating ComputingNode {name}.')
@@ -38,7 +40,8 @@ class ComputingNode:
         # DDS variables
         self.dds_computing_node_ = AmlDdsComputingNode(
             name=name,
-            job_process_callback=self._job_process_callback_dds_type)
+            job_process_callback=self._job_process_callback_dds_type,
+            domain=domain)
         self.dds_computing_node_.init()
 
         # Stop variables

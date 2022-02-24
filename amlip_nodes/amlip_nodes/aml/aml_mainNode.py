@@ -23,6 +23,7 @@ class MainNode:
     def __init__(
             self,
             name,
+            domain=0,
             store_in_file=True):
         """Create a default MainNode."""
         # Internal variables
@@ -30,7 +31,9 @@ class MainNode:
         self.store_in_file_ = store_in_file
 
         # DDS variables
-        self.dds_main_node_ = AmlDdsMainNode(name)
+        self.dds_main_node_ = AmlDdsMainNode(
+            name=name,
+            domain=domain)
         self.dds_main_node_.init()
 
         # Stop variables

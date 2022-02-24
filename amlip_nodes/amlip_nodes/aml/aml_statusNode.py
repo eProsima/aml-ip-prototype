@@ -15,6 +15,7 @@ class StatusNode:
     def __init__(
             self,
             name,
+            domain=0,
             store_in_file=True):
         """Create a default StatusNode."""
         # Internal variables
@@ -23,7 +24,8 @@ class StatusNode:
 
         # DDS variables
         self.dds_status_node_ = AmlDdsStatusNode(
-            name=name)
+            name=name,
+            domain=domain)
         self.dds_status_node_.init()
 
         # Stop variables
