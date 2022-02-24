@@ -1,0 +1,32 @@
+
+allowlist:
+  - name: aml/status
+    type: aml::status
+
+  - name: aml/ms/request_availability/job
+    type: aml::ms::request
+
+  - name: aml/ms/reply_available/job
+    type: aml::ms::task_reference
+
+  - name: aml/ms/task_target/job,
+    type: aml::ms::task_reference
+
+  - name: aml/ms/task/job
+    type: aml::ms::task::job
+
+  - name: aml/ms/solution/job
+    type: aml::ms::solution::job
+
+simple_1:
+  type: local
+  domain: 1
+
+wan:
+  type: wan
+  id: 1
+  connection-addresses:
+    - id: 0
+      addresses:
+        - ip: "127.0.0.1"
+          port: 11666
