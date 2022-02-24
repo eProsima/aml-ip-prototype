@@ -1,9 +1,9 @@
 """Run Aml Computing Node."""
 
 import argparse
-from distutils.log import debug
 import random
 import signal
+from datetime import datetime
 from threading import Condition, Thread
 
 from amlip_nodes.log.log import logger, logging
@@ -36,7 +36,7 @@ def parse_args():
     parser.add_argument('--debug', action='store_true',
                         help='Activate debug traces.')
 
-    parser.add_argument('-s', '--seed', default=666, type=int,
+    parser.add_argument('-s', '--seed', default=-1, type=int,
                         help='Random seed.')
 
     args = parser.parse_args()
@@ -45,7 +45,12 @@ def parse_args():
     if args.debug:
         debug_level = logging.ARCH
 
-    return (args.domain, args.seed, debug_level)
+    seed = args.seed
+    if args.seed == -1:
+        # If seed is not set, use time to create a random seed
+        seed = datetime.now()
+
+    return (args.domain, seed, debug_level)
 
 
 def run_node(
