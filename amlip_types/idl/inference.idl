@@ -1,0 +1,22 @@
+
+#include "multiservice.idl"
+
+struct Inference_Task_Data : Multiservice_Task_Data
+{
+    sequence<octet> inference;
+};
+
+struct Inference_Solution_Data : Multiservice_Solution_Data
+{
+    sequence<octet> solution;
+};
+
+struct Inference_Task : Multiservice_Task
+{
+    Inference_Task_Data data;
+};
+
+struct Inference_Solution : Multiservice_Solution
+{
+    Inference_Solution_Data data;
+};

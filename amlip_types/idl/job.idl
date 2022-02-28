@@ -1,0 +1,22 @@
+
+#include "multiservice.idl"
+
+struct Job_Task_Data : Multiservice_Task_Data
+{
+    sequence<octet> job;
+};
+
+struct Job_Solution_Data : Multiservice_Solution_Data
+{
+    sequence<octet> solution;
+};
+
+struct Job_Task : Multiservice_Task
+{
+    Job_Task_Data data;
+};
+
+struct Job_Solution : Multiservice_Solution
+{
+    Job_Solution_Data data;
+};
